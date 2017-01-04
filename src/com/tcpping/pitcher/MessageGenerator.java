@@ -43,7 +43,7 @@ public class MessageGenerator extends TimerTask {
 		int time = (int)System.currentTimeMillis();
 		String timeStr = Integer.toString(time);
 		int timeLength = timeStr.length();
-		String message = RandomStringUtils.randomAlphabetic(size - timeLength - 3);
+		String message = "payload"; //RandomStringUtils.randomAlphabetic(size - timeLength - 3);
 		
 	    messageId++;
 	    return messageId + "%" + timeStr + "-" + message;
