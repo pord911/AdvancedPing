@@ -10,13 +10,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.tcpping.time.TimingClass;
+
 public class MessageHandler {
 	private MessageInputOutput messageIO;
 	private LinkedBlockingQueue<BufferQueueElement> queue;
+	private MessageContainer msgContainer;
 
-	public MessageHandler(MessageInputOutput messageIO) {
+	public MessageHandler(MessageInputOutput messageIO, MessageContainer msgContainer) {
 		this.messageIO = messageIO;
 		queue = new LinkedBlockingQueue<BufferQueueElement>();
+		this.msgContainer = msgContainer;
 	}
 
 	public void startReadingMessages() throws IOException {
@@ -30,25 +34,25 @@ public class MessageHandler {
 		public ReadMessages(MessageInputOutput messageIO) {
 			this.messageIO = messageIO;
 		}
-		
+
 		public void run() {
 			String line = null;
-			int initTime = (int) System.currentTimeMillis();
-			int diff = 0;
+			long initTime = TimingClass.getTime();
+			long diff = 0;
 			int messageAcc = 0;
 			int numberOfMsgs = 0;
-			int currentTime = 0;
+			long currentTime = 0;
 			bufferElement = new BufferQueueElement();
 
 			try {
 				while ((line = messageIO.readMessage()) != null) {
-					currentTime = (int) System.currentTimeMillis();
+					currentTime = TimingClass.getTime();
 					diff = currentTime - initTime;
 					messageAcc++;
 					numberOfMsgs++;
 					bufferElement.addListElement(currentTime, line);
 					if (diff > 1000) {
-						initTime = (int) System.currentTimeMillis();
+						initTime = TimingClass.getTime();
 						bufferElement.setMsgAcc(messageAcc);
 						bufferElement.setMsgNumber(numberOfMsgs);
 						queue.put((bufferElement));
@@ -68,12 +72,13 @@ public class MessageHandler {
 
 	public void processMessages() throws InterruptedException {
 		BufferQueueElement obj = null;
-		Map<Integer, String> list = null;
-		Set<Integer> keySet = null;
+		Map<Long, String> list = null;
+		Set<Long> keySet = null;
 		int lostMessages = 0;
-		List<Integer> roundTripList = new LinkedList<Integer>();
-		List<Integer> frontDirectionTimeList = new LinkedList<Integer>();
-		List<Integer> backDirectionTimeList = new LinkedList<Integer>();
+		int messageId;
+		List<Long> roundTripList = new LinkedList<Long>();
+		List<Long> frontDirectionTimeList = new LinkedList<Long>();
+		List<Long> backDirectionTimeList = new LinkedList<Long>();
 		String message = null;
 		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 		Date date = new Date();
@@ -86,20 +91,16 @@ public class MessageHandler {
 
 			list = obj.getLineList();
 			keySet = list.keySet();
-			for (Integer timeKey : keySet) {
+			for (Long timeKey : keySet) {
 				message = list.get(timeKey);
-				if (!checkIdFromMessage(message)) {
+				messageId = (int)getValueFromMessage(message, null, "%");
+				if (!msgContainer.checkMessageId(messageId)) {
 					lostMessages++;
 					continue;
 				}
-			/*	System.out.println("Message is: " + message);
-				System.out.println("Time of start: " + getTimeFromMessage(message, "%", "-"));
-				System.out.println("A->B Difference: " + getTimeFromMessage(message, "&", "/")); */
-				System.out.println("Time on B: " + getTimeFromMessage(message, "/", null)); 
-				System.out.println("Packet arrival time: " + timeKey);
-				roundTripList.add(timeKey - getTimeFromMessage(message, "%", "-"));
-				frontDirectionTimeList.add(getTimeFromMessage(message, "&", "/"));
-				backDirectionTimeList.add(timeKey - getTimeFromMessage(message, "/", null));
+				roundTripList.add(timeKey - getValueFromMessage(message, "%", "-"));
+				frontDirectionTimeList.add(getValueFromMessage(message, "&", "/"));
+				backDirectionTimeList.add(timeKey - getValueFromMessage(message, "/", null));
 			}
 			printMessage.append(" Lost=" + lostMessages)
 			            .append(calculateAvgAndMaxTime(roundTripList))
@@ -116,46 +117,47 @@ public class MessageHandler {
 		}
 	}
 
-	private boolean checkIdFromMessage(String message) {
-		return true;
-	}
-
-	private int getTimeFromMessage(String message, String firstChar, String secondChar) {
+	private long getValueFromMessage(String message, String firstChar, String secondChar) {
 		// TODO: dodati NoCharFoundException
-		int firstIndex = message.indexOf(firstChar);
+		int firstIndex;
 		int lastIndex;
+
+		if (firstChar != null)
+			firstIndex = message.indexOf(firstChar) + 1;
+		else
+			firstIndex = 0;
 
 		if (secondChar != null)
 			lastIndex = message.indexOf(secondChar);
 		else
 			lastIndex = message.length();
 		
-		return Integer.parseInt(message.substring(firstIndex + 1, lastIndex));
+		return Long.decode(message.substring(firstIndex, lastIndex));
 	}
 
-	private String calculateAvgAndMaxTime(List<Integer> timeList) {
-		int accTime = 0;
-		int maxTime = 0;
+	private String calculateAvgAndMaxTime(List<Long> timeList) {
+		long accTime = 0;
+		long maxTime = 0;
 		String avgTime = null;
 
-		for (Integer time : timeList) {
+		for (Long time : timeList) {
 			if (maxTime < time)
 				maxTime = time;
 			accTime += time;
 		}
-		avgTime = Integer.toString(accTime/timeList.size());
+		avgTime = Long.toString(accTime/timeList.size());
 
-		return " AvgRTT=" + avgTime + "ms" + " MaxRTT=" + Integer.toString(maxTime);
+		return " AvgRTT=" + avgTime + "ms" + " MaxRTT=" + Long.toString(maxTime);
 	}
 
-	private String calculateAvgDirectionTime(List<Integer> directionTimeList, String printMsgString) {
-		int accTime = 0;
+	private String calculateAvgDirectionTime(List<Long> directionTimeList, String printMsgString) {
+		long accTime = 0;
 
-		for (Integer time : directionTimeList) {
+		for (Long time : directionTimeList) {
 			accTime += time;
 		}
-		//System.out.println("Sum is:" + accTime + " Size of list:" + directionTimeList.size());
-		return printMsgString + Integer.toString(accTime/directionTimeList.size());
+
+		return printMsgString + Long.toString(accTime/directionTimeList.size());
 	}
 	
 	

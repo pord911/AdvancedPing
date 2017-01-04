@@ -7,6 +7,7 @@ import java.util.Timer;
 import com.tcpping.connection.CreateTCPConnection;
 import com.tcpping.connection.TCPConnection;
 import com.tcpping.main.ConnType;
+import com.tcpping.message.MessageContainer;
 import com.tcpping.message.MessageHandler;
 import com.tcpping.message.MessageInputOutput;
 
@@ -18,6 +19,7 @@ public class Pitcher {
 	private MessageInputOutput messageIO;
 	private MessageHandler msgHandler;
 	private TCPConnection connection;
+	private MessageContainer msgContainer;
 	
 	public Pitcher(String hostName, int port, int messageNumber, int messageSize) {
 		this.hostName = hostName;
@@ -32,8 +34,9 @@ public class Pitcher {
 		try {
 			connection = CreateTCPConnection.createTCPConnection(ConnType.PITCHER, hostName, port);
 			messageIO = new MessageInputOutput(connection.getClientSocket());
-			msgHandler = new MessageHandler(messageIO);
-			msgGenerator = new MessageGenerator(messageSize, messageNumber, messageIO);
+			msgContainer = new MessageContainer();
+			msgHandler = new MessageHandler(messageIO, msgContainer);
+			msgGenerator = new MessageGenerator(messageSize, messageNumber, messageIO, msgContainer);
 			timer.schedule(msgGenerator, 0, 1000);
 			msgHandler.startReadingMessages();
 			msgHandler.processMessages();

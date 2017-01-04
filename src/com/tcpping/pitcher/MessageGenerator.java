@@ -5,7 +5,9 @@ import java.util.TimerTask;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
+import com.tcpping.message.MessageContainer;
 import com.tcpping.message.MessageInputOutput;
+import com.tcpping.time.TimingClass;
 
 
 public class MessageGenerator extends TimerTask {
@@ -13,23 +15,23 @@ public class MessageGenerator extends TimerTask {
 	private int msgPerSecond;
 	private MessageInputOutput msgHandler;
 	private int messageId = 0;
+	private MessageContainer msgContainer;
 
-	public MessageGenerator(int size, int msgPerSecond, MessageInputOutput msgHandler) {
+	public MessageGenerator(int size, int msgPerSecond, MessageInputOutput msgHandler, MessageContainer msgContainer) {
 		this.size = size;
 		this.msgPerSecond = msgPerSecond;
 		this.msgHandler = msgHandler;
+		this.msgContainer = msgContainer;
 	}
 
 	private void sendMessages() {
-		//TODO: možda staviti for petlju unutar try
-		//System.out.println("Start writing messages");
-		for (int i = 0; i < msgPerSecond; i++) {
-			try {
+		try {
+			for (int i = 0; i < msgPerSecond; i++) {
 				msgHandler.writeMessage(createMessage());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
@@ -39,13 +41,12 @@ public class MessageGenerator extends TimerTask {
 	 * @return
 	 */
 	private String createMessage() {
-		// TODO: provjeriti da li je dobro ovdje prebacivati u int
-		int time = (int)System.currentTimeMillis();
-		String timeStr = Integer.toString(time);
-		int timeLength = timeStr.length();
-		String message = "payload"; //RandomStringUtils.randomAlphabetic(size - timeLength - 3);
-		
+		long time = TimingClass.getTime();
+		String timeStr = Long.toString(time);
+		String message = "payload"; //RandomStringUtils.randomAlphabetic(size);
+
 	    messageId++;
+	    msgContainer.storeMessage(messageId);
 	    return messageId + "%" + timeStr + "-" + message;
 	}
 
