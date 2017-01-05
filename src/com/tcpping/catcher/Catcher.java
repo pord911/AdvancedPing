@@ -25,19 +25,10 @@ public class Catcher {
 	
 	public void startTCPApp() {
 		try {
-			connection = CreateTCPConnection.createTCPConnection(ConnType.CATCHER, hostName, port);
-			msgHandler = new MessageInputOutput(connection.getClientSocket());
-			String msg;
-			long catcherTime = 0;
-			while ((msg = msgHandler.readMessage()) != null) {
-				catcherTime = TimingClass.getTime();
-				System.out.println("Message arrived: " + msg);
-				dropPacket++;
-				if (dropPacket % 2 == 0)
-					continue;
-				msgHandler.writeMessage(appendTime(msg, catcherTime));
+			while ((connection = CreateTCPConnection.createTCPConnection(ConnType.CATCHER, hostName, port)) != null) {
+				msgHandler = new MessageInputOutput(connection.getClientSocket());
+				(new Thread(new CatcherThread(msgHandler))).start();
 			}
-
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -53,25 +44,5 @@ public class Catcher {
 				e.printStackTrace();
 			}
 		}
-	}
-
-	private String appendTime(String message, long catcherTime) {
-		String catcherMessage;
-		msgAppend.append(message);
-		System.out.println("Time on B: " + catcherTime);
-		msgAppend.append("&" + getDirectionTime(message, catcherTime))
-		         .append("/" + catcherTime);
-		catcherMessage = msgAppend.toString();
-		msgAppend.setLength(0);
-		return catcherMessage;
-	}
-
-	private String getDirectionTime(String message, long catcherTime) {
-		int firstIndex = message.indexOf("%");
-		int lastIndex = message.indexOf("-");
-		long directionTime = Long.decode(message.substring(firstIndex + 1, lastIndex));
-		
-		System.out.println("A->B time is:" + (catcherTime - directionTime));
-		return Long.toString(catcherTime - directionTime);
 	}
 }
