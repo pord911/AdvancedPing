@@ -18,4 +18,8 @@ public class TCPClientConnection implements TCPConnection {
 	public void closeConnection() throws IOException {
 		clientSocket.close();
 	}
+
+	public Socket acceptClientConnection() throws IOException {
+		return null;
+	}
 }

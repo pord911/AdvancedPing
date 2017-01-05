@@ -33,7 +33,9 @@ public class MessageInputOutput {
 	}
 
 	public void closeMessageStream() throws IOException {
-		writer.close();
-		reader.close();
+		if (writer != null)
+			writer.close();
+		if (reader != null)
+			reader.close();
 	}
 }

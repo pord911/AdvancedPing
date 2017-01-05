@@ -6,15 +6,18 @@ import java.net.Socket;
 import com.tcpping.message.MessageInputOutput;
 import com.tcpping.time.TimingClass;
 
-public class CatcherThread implements Runnable {
+public class CatcherClientHandler implements Runnable {
 	private MessageInputOutput msgHandler;
+	private Socket connection;
 	private StringBuilder msgAppend;
-	
-	public CatcherThread(MessageInputOutput msgHandler) {
-		this.msgHandler = msgHandler;
+
+	public CatcherClientHandler(Socket connection) throws IOException {
+		this.connection = connection;
+		msgHandler = new MessageInputOutput(connection);
+		msgAppend = new StringBuilder();
 	}
 
-	private void startReceivingMessages() {
+	private void startReadingMessages() {
 		String msg;
 		long catcherTime = 0;
 		try {
@@ -31,8 +34,16 @@ public class CatcherThread implements Runnable {
 				msgHandler.writeMessage(appendTime(msg, catcherTime));
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			try {
+				msgHandler.closeMessageStream();
+				if (connection != null)
+					connection.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -51,13 +62,12 @@ public class CatcherThread implements Runnable {
 		int firstIndex = message.indexOf("%");
 		int lastIndex = message.indexOf("-");
 		long directionTime = Long.decode(message.substring(firstIndex + 1, lastIndex));
-		
+
 		System.out.println("A->B time is:" + (catcherTime - directionTime));
 		return Long.toString(catcherTime - directionTime);
 	}
 
 	public void run() {
-		startReceivingMessages();
+		startReadingMessages();
 	}
-
 }
