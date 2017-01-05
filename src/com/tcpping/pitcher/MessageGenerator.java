@@ -16,6 +16,8 @@ public class MessageGenerator extends TimerTask {
 	private MessageInputOutput msgHandler;
 	private int messageId = 0;
 	private MessageContainer msgContainer;
+	private int pingCounter = 0;
+	int sentMessages = 0;
 
 	public MessageGenerator(int size, int msgPerSecond, MessageInputOutput msgHandler, MessageContainer msgContainer) {
 		this.size = size;
@@ -24,14 +26,11 @@ public class MessageGenerator extends TimerTask {
 		this.msgContainer = msgContainer;
 	}
 
-	private void sendMessages() {
+	private void sendMessages(String message) {
 		try {
-			for (int i = 0; i < msgPerSecond; i++) {
-				msgHandler.writeMessage(createMessage());
-			}
+			msgHandler.writeMessage(message);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println(e.getMessage());
 		}
 	}
 
@@ -43,7 +42,7 @@ public class MessageGenerator extends TimerTask {
 	private String createMessage() {
 		long time = TimingClass.getTime();
 		String timeStr = Long.toString(time);
-		String message = "payload"; //RandomStringUtils.randomAlphabetic(size);
+		String message = RandomStringUtils.randomAlphabetic(size);
 
 	    messageId++;
 	    msgContainer.storeMessage(messageId);
@@ -52,6 +51,15 @@ public class MessageGenerator extends TimerTask {
 
 	@Override
 	public void run() {
-		sendMessages();
+		int i;
+		if (pingCounter < 5) {
+			for (i = 0; i < msgPerSecond; i++) {
+				sendMessages(createMessage());
+			}
+			sentMessages += i;
+			pingCounter++;
+		} else {
+			sendMessages("BYE");
+		}
 	}
 }

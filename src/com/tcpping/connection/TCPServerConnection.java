@@ -14,10 +14,6 @@ public class TCPServerConnection implements TCPConnection {
 		serverSocket = new ServerSocket(port, 1, address);
 	}
 
-	public Socket getClientSocket() {
-		return null;
-	}
-
 	public Socket acceptClientConnection() throws IOException {
 		return serverSocket.accept();
 	}
@@ -25,5 +21,9 @@ public class TCPServerConnection implements TCPConnection {
 	public void closeConnection() throws IOException {
 		if (serverSocket != null)
 			serverSocket.close();
+	}
+
+	public Socket getClientSocket() {
+		return null;
 	}
 }

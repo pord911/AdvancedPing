@@ -23,39 +23,32 @@ public class CatcherClientHandler implements Runnable {
 		try {
 			while ((msg = msgHandler.readMessage()) != null) {
 				catcherTime = TimingClass.getTime();
-				System.out.println("Message arrived: " + msg);
-				/*
-				 * dropPacket++; if (dropPacket % 2 == 0) continue;
-				 */
-				if (msg == "BYE") {
+				if (msg.equals("BYE")) {
+					System.out.println("Sending BYE");
 					msgHandler.writeMessage("OKBYE");
 					break;
 				}
 				msgHandler.writeMessage(appendTime(msg, catcherTime));
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.print(e.getMessage());
 		} finally {
 			try {
 				msgHandler.closeMessageStream();
 				if (connection != null)
 					connection.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.print(e.getMessage());
 			}
 		}
 	}
 
 	private String appendTime(String message, long catcherTime) {
-		String catcherMessage;
+		msgAppend.setLength(0);
 		msgAppend.append(message);
-		System.out.println("Time on B: " + catcherTime);
 		msgAppend.append("&" + getDirectionTime(message, catcherTime))
 		         .append("/" + catcherTime);
-		catcherMessage = msgAppend.toString();
-		msgAppend.setLength(0);
-		return catcherMessage;
+		return msgAppend.toString();
 	}
 
 	private String getDirectionTime(String message, long catcherTime) {
@@ -63,7 +56,6 @@ public class CatcherClientHandler implements Runnable {
 		int lastIndex = message.indexOf("-");
 		long directionTime = Long.decode(message.substring(firstIndex + 1, lastIndex));
 
-		System.out.println("A->B time is:" + (catcherTime - directionTime));
 		return Long.toString(catcherTime - directionTime);
 	}
 

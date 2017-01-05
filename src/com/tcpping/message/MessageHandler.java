@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.cli.ParseException;
 
 import com.tcpping.time.TimingClass;
 
@@ -48,9 +51,18 @@ public class MessageHandler {
 				while ((line = messageIO.readMessage()) != null) {
 					currentTime = TimingClass.getTime();
 					diff = currentTime - initTime;
+					if (line.equals("OKBYE")) {
+						bufferElement.setMsgAcc(messageAcc);
+					    bufferElement.setMsgNumber(numberOfMsgs);
+						bufferElement.setCloseQueue(true);
+						queue.put(bufferElement);
+						break;
+					}
+
 					messageAcc++;
 					numberOfMsgs++;
-					bufferElement.addListElement(currentTime, line);
+					bufferElement.addListElement(line, currentTime);
+
 					if (diff > 1000) {
 						initTime = TimingClass.getTime();
 						bufferElement.setMsgAcc(messageAcc);
@@ -61,49 +73,45 @@ public class MessageHandler {
 					}
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println(e.getMessage());
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println(e.getMessage());
 			}
 		}
 	}
 
-	public void processMessages() throws InterruptedException {
-		BufferQueueElement obj = null;
-		Map<Long, String> list = null;
-		Set<Long> keySet = null;
-		int lostMessages = 0;
+	public void processMessages() throws InterruptedException, ParseException, NumberFormatException  {
+		BufferQueueElement obj;
+		Map<String, Long> list;
+		Set<String> keySet;
 		int messageId;
 		List<Long> roundTripList = new LinkedList<Long>();
 		List<Long> frontDirectionTimeList = new LinkedList<Long>();
 		List<Long> backDirectionTimeList = new LinkedList<Long>();
-		String message = null;
 		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 		Date date = new Date();
         StringBuilder printMessage = new StringBuilder();
+        long time = 0;
 
-		while ((obj = queue.take()) != null) {
+		while ((obj = queue.poll(5000, TimeUnit.MILLISECONDS)) != null) {
 			printMessage.append(dateFormat.format(date))
 			            .append(": Total=" + Integer.toString(obj.getMsgAcc()))
 			            .append(" Rate=" + Integer.toString(obj.getMsgNumber()) + "/s");
 
 			list = obj.getLineList();
 			keySet = list.keySet();
-			for (Long timeKey : keySet) {
-				message = list.get(timeKey);
-				messageId = (int)getValueFromMessage(message, null, "%");
+			System.out.println("Number of keys: " + keySet.size());
+			for (String message : keySet) {
+				time = list.get(message);
+				messageId = (int) getValueFromMessage(message, null, "%");
 				if (!msgContainer.checkMessageId(messageId)) {
-					lostMessages++;
 					continue;
 				}
-				roundTripList.add(timeKey - getValueFromMessage(message, "%", "-"));
+				roundTripList.add(time - getValueFromMessage(message, "%", "-"));
 				frontDirectionTimeList.add(getValueFromMessage(message, "&", "/"));
-				backDirectionTimeList.add(timeKey - getValueFromMessage(message, "/", null));
+				backDirectionTimeList.add(time - getValueFromMessage(message, "/", null));
 			}
-			printMessage.append(" Lost=" + lostMessages)
-			            .append(calculateAvgAndMaxTime(roundTripList))
+			printMessage.append(calculateAvgAndMaxTime(roundTripList))
 			            .append(calculateAvgDirectionTime(frontDirectionTimeList, " A->B="))
 			            .append(calculateAvgDirectionTime(backDirectionTimeList, " B->A="));
 
@@ -113,52 +121,60 @@ public class MessageHandler {
 			backDirectionTimeList.clear();
 			roundTripList.clear();
 			printMessage.setLength(0);
-			lostMessages = 0;
+			// Reader thread finished reading, stop the consumer
+			if (obj.isCloseQueue())
+				break;
 		}
+		// TODO: Ovdje staviti poruku kao u stvarnom ping, broj poslanih broj primljenih, i broj izgubljenih
+		System.out.println();
+		System.out.println("Messages lost: " + msgContainer.getMessageListLenght());
 	}
 
-	private long getValueFromMessage(String message, String firstChar, String secondChar) {
-		// TODO: dodati NoCharFoundException
-		int firstIndex;
-		int lastIndex;
+	private long getValueFromMessage(String message, String firstChar, String secondChar) throws ParseException, NumberFormatException {
+		int firstIndex = 0;
+		int lastIndex = 0;
 
-		if (firstChar != null)
-			firstIndex = message.indexOf(firstChar) + 1;
-		else
+		if (firstChar != null) {
+			if ((firstIndex = message.indexOf(firstChar)) != -1)
+				firstIndex = firstIndex + 1;
+			else
+				throw new ParseException("Invalid char sequence in message " + firstChar);
+		} else
 			firstIndex = 0;
 
-		if (secondChar != null)
-			lastIndex = message.indexOf(secondChar);
-		else
+		if (secondChar != null) {
+			if ((lastIndex = message.indexOf(secondChar)) == -1)
+				throw new ParseException("Invalid char sequence in message " + firstChar);
+		} else
 			lastIndex = message.length();
-		
+
 		return Long.decode(message.substring(firstIndex, lastIndex));
 	}
 
-	private String calculateAvgAndMaxTime(List<Long> timeList) {
+	private String calculateAvgAndMaxTime(List<Long> timeList) throws NumberFormatException {
 		long accTime = 0;
 		long maxTime = 0;
-		String avgTime = null;
+		String avgTime;
 
 		for (Long time : timeList) {
 			if (maxTime < time)
 				maxTime = time;
 			accTime += time;
 		}
-		avgTime = Long.toString(accTime/timeList.size());
+		avgTime = String.format("%.3f", (double) accTime/timeList.size());
 
-		return " AvgRTT=" + avgTime + "ms" + " MaxRTT=" + Long.toString(maxTime);
+		return " AvgRTT=" + avgTime + "ms" + " MaxRTT=" + Long.toString(maxTime) + "ms";
 	}
 
-	private String calculateAvgDirectionTime(List<Long> directionTimeList, String printMsgString) {
+	private String calculateAvgDirectionTime(List<Long> directionTimeList, String printMsgString) throws NumberFormatException {
 		long accTime = 0;
+		String avgTime;
 
 		for (Long time : directionTimeList) {
 			accTime += time;
 		}
+		avgTime = String.format("%.3f", (double) accTime/directionTimeList.size());
 
-		return printMsgString + Long.toString(accTime/directionTimeList.size());
+		return printMsgString + avgTime + "ms";
 	}
-	
-	
 }

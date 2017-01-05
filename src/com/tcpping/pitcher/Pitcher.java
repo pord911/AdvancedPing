@@ -4,14 +4,17 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.Timer;
 
+import org.apache.commons.cli.ParseException;
+
+import com.tcpping.connection.ConnType;
 import com.tcpping.connection.CreateTCPConnection;
 import com.tcpping.connection.TCPConnection;
-import com.tcpping.main.ConnType;
 import com.tcpping.message.MessageContainer;
 import com.tcpping.message.MessageHandler;
 import com.tcpping.message.MessageInputOutput;
+import com.tcpping.tcpapp.TcpAppInterface;
 
-public class Pitcher {
+public class Pitcher implements TcpAppInterface {
 	private String hostName;
 	private int port;
 	private int messageNumber;
@@ -41,23 +44,22 @@ public class Pitcher {
 			msgHandler.startReadingMessages();
 			msgHandler.processMessages();
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println(e.getMessage());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println(e.getMessage());
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println(e.getMessage());
+		} catch (ParseException e) {
+			System.out.println(e.getMessage());
+		} catch (NumberFormatException e) {
+			System.out.println(e.getMessage());
 		} finally {
 			try {
-				if (messageIO != null)
-					messageIO.closeMessageStream();
-				if (connection != null)
-					connection.closeConnection();
+				timer.cancel();
+				messageIO.closeMessageStream();
+				connection.closeConnection();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println(e.getMessage());
 			}
 		}
 	}

@@ -14,6 +14,14 @@ public class MessageContainer {
 	}
 
 	public synchronized boolean checkMessageId(int messageId) {
-		return messageIdList.containsKey(messageId);
+		if (messageIdList.containsKey(messageId)) {
+			messageIdList.remove(messageId);
+			return true;
+		}
+		return false;
+	}
+
+	public synchronized int getMessageListLenght() {
+		return messageIdList.size();
 	}
 }

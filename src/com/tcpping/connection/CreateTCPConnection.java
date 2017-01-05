@@ -3,8 +3,6 @@ package com.tcpping.connection;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
-import com.tcpping.main.ConnType;
-
 public class CreateTCPConnection {
 
 	public static TCPConnection createTCPConnection(ConnType connectionType, String host, int port) throws UnknownHostException, IOException {

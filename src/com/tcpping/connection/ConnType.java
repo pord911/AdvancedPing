@@ -1,4 +1,4 @@
-package com.tcpping.main;
+package com.tcpping.connection;
 
 public enum ConnType {
 	PITCHER,

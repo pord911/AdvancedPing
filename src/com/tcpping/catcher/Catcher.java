@@ -6,11 +6,12 @@ import java.net.UnknownHostException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.tcpping.connection.ConnType;
 import com.tcpping.connection.CreateTCPConnection;
 import com.tcpping.connection.TCPConnection;
-import com.tcpping.main.ConnType;
+import com.tcpping.tcpapp.TcpAppInterface;
 
-public class Catcher {
+public class Catcher implements TcpAppInterface {
 	private String hostName;
 	private int port;
 	private TCPConnection connection;
@@ -33,16 +34,15 @@ public class Catcher {
 				workers.execute(clientHandler);
 			}
 		} catch (UnknownHostException e) {
-			e.printStackTrace();
+			System.out.print(e.getMessage());
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.print(e.getMessage());
 		} finally {
 			try {
 				connection.closeConnection();
 				workers.shutdown();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.print(e.getMessage());
 			}
 		}
 	}

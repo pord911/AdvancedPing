@@ -9,12 +9,32 @@ import org.apache.commons.validator.routines.InetAddressValidator;
 
 import com.tcpping.catcher.Catcher;
 import com.tcpping.pitcher.Pitcher;
+import com.tcpping.tcpapp.TcpAppInterface;
 
 public class TCPPing {
 
-	public static Catcher processCatcherOptions(CommandLine commandLine) throws ParseException {
-		String ipAddress = null;
-		int portValue = 0;
+	public static void printHelp() {
+		String helpMessage;
+
+		helpMessage = String.format(""
+				+ "Usage: TCPPing -c | -p\n"
+				+ "               -c -bind <hostname | IP> -port <port>\n"
+				+ "               -p -port <port> -mps <mps> [-size <size>] hostname\n"
+				+ "\n"
+				+ "Options:\n"
+				+ "   -p          Pitcher mode.\n"
+				+ "   -c          Catcher mode.\n"
+				+ "   -bind       Bind catcher to a host name or IP address.\n"
+				+ "   -port       Port number.\n"
+				+ "   -mps        Messages per second.\n"
+				+ "   -size       Message size.\n"
+				+ "   hostname    Host name or IP address.\n");
+		System.out.println(helpMessage);
+	}
+
+	public static Catcher processOptions(CommandLine commandLine) throws ParseException, NumberFormatException {
+		String ipAddress;
+		int portValue;
 
 		if (commandLine.hasOption("bind")) {
 			ipAddress = commandLine.getOptionValue("bind");
@@ -37,11 +57,11 @@ public class TCPPing {
 		return new Catcher(ipAddress, portValue);
 	}
 
-	public static Pitcher processPitcherOptions(CommandLine commandLine, String[] args) throws ParseException {
-		int portValue = 0;
-		int mpsValue = 0;
-		int sizeValue = 0;
-		String hostName = null;
+	public static Pitcher processOptions(CommandLine commandLine, String[] args) throws ParseException, NumberFormatException {
+		int portValue;
+		int mpsValue;
+		int sizeValue;
+		String hostName;
 
 		if (commandLine.hasOption("port")) {
 			String port = commandLine.getOptionValue("port");
@@ -49,7 +69,7 @@ public class TCPPing {
 			if (portValue < 1024 || portValue > 65535)
 				throw new ParseException("Invalid port number " + port);
 		} else {
-			throw new ParseException("Invalid parameter.");
+			throw new ParseException("Invalid parameter, should be port.");
 		}
 
 		if (commandLine.hasOption("mps")) {
@@ -58,7 +78,7 @@ public class TCPPing {
 			if (mpsValue < 1)
 				throw new ParseException("Invalid mps number " + mps);
 		} else {
-			throw new ParseException("Invalid parameter.");
+			throw new ParseException("Invalid parameter, should be mps.");
 		}
 
 		if (commandLine.hasOption("size")) {
@@ -75,41 +95,51 @@ public class TCPPing {
 		else
 			hostName = args[5];
 
+		InetAddressValidator validator = new InetAddressValidator();
+		if (!validator.isValidInet4Address(hostName))
+			throw new ParseException("Invalid IP address format: " + hostName);
+
 		return new Pitcher(hostName, portValue, mpsValue, sizeValue);
 	}
-	
-	public static void main(String[] args) {
 
-		Options options = new Options();
+	public static void main(String[] args) {
+		TcpAppInterface tcpApp;
 		CommandLine commandLine;
+		Options options = new Options();
 		CommandLineParser parser = new DefaultParser();
 
-		// TODO: kreirati helper metodu
 		options.addOption("c", false, "Role catcher.");
 		options.addOption("p", false, "Role pitcher");
 		options.addOption("bind", true, "Bind an IP addresss");
 		options.addOption("port", true, "Port number");
 		options.addOption("mps", true, "Number of messages per second");
 		options.addOption("size", true, "Message size");
-		Catcher catcher = null;
-		Pitcher pitcher = null;
+
+		if (args.length != 8 && args.length != 5 && args.length != 7) {
+			System.out.println("Invalid number of arguments: " + args.length);
+			printHelp();
+			return;
+		}
 
 		try {
 			commandLine = parser.parse(options, args);
 
 			if (commandLine.hasOption("c")) {
-				catcher = processCatcherOptions(commandLine);
-				// TODO: staviti pitcher i catcher u interface
-				catcher.startTCPApp();
+				tcpApp = processOptions(commandLine);
+				tcpApp.startTCPApp();
 			} else if (commandLine.hasOption("p")) {
-				pitcher = processPitcherOptions(commandLine, args);
-				pitcher.startTCPApp();
+				tcpApp = processOptions(commandLine, args);
+				tcpApp.startTCPApp();
 			} else {
-				System.out.println("Invalid option");
+				throw new ParseException("Invalid option.");
 			}
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println(e.getMessage());
+			printHelp();
+		} catch (NumberFormatException e) {
+			System.out.println("Invalid paramter format.");
+			System.out.println(e.getMessage());
+			printHelp();
 		}
 	}
 }
