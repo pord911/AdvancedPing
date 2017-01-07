@@ -29,6 +29,7 @@ public class MessageGenerator extends TimerTask {
 	private void sendMessages(String message) {
 		try {
 			msgHandler.writeMessage(message);
+			msgContainer.storeMessage(messageId);
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		}
@@ -45,7 +46,6 @@ public class MessageGenerator extends TimerTask {
 		String message = RandomStringUtils.randomAlphabetic(size);
 
 	    messageId++;
-	    msgContainer.storeMessage(messageId);
 	    return messageId + "%" + timeStr + "-" + message;
 	}
 

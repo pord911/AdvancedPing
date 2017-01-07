@@ -100,7 +100,6 @@ public class MessageHandler {
 
 			list = obj.getLineList();
 			keySet = list.keySet();
-			System.out.println("Number of keys: " + keySet.size());
 			for (String message : keySet) {
 				time = list.get(message);
 				messageId = (int) getValueFromMessage(message, null, "%");
@@ -125,9 +124,12 @@ public class MessageHandler {
 			if (obj.isCloseQueue())
 				break;
 		}
-		// TODO: Ovdje staviti poruku kao u stvarnom ping, broj poslanih broj primljenih, i broj izgubljenih
+		String finalMessage = String.format("Messages sent: %d, Messages received: %d, "
+				                          + "Messages lost: %d", msgContainer.getSentMessages() - 1, // remove BYE message
+				                                                   obj.getMsgAcc(),
+				                                                   msgContainer.getMessageListLenght());
 		System.out.println();
-		System.out.println("Messages lost: " + msgContainer.getMessageListLenght());
+		System.out.println(finalMessage);
 	}
 
 	private long getValueFromMessage(String message, String firstChar, String secondChar) throws ParseException, NumberFormatException {
