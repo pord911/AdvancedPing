@@ -12,6 +12,7 @@ import com.tcpping.pitcher.Pitcher;
 import com.tcpping.tcpapp.TcpAppInterface;
 
 public class TCPPing {
+	private static InetAddressValidator validator = new InetAddressValidator();
 
 	public static void printHelp() {
 		String helpMessage;
@@ -38,21 +39,18 @@ public class TCPPing {
 
 		if (commandLine.hasOption("bind")) {
 			ipAddress = commandLine.getOptionValue("bind");
-			InetAddressValidator validator = new InetAddressValidator();
-			if (!validator.isValidInet4Address(ipAddress))
+			if (!validator.isValidInet4Address(ipAddress) && !validator.isValidInet6Address(ipAddress))
 				throw new ParseException("Invalid IP address format: " + ipAddress); 
-		} else {
+		} else
 			throw new ParseException("Invalid parameter.");
-		}
 
 		if (commandLine.hasOption("port")) {
 			String port = commandLine.getOptionValue("port");
 			portValue = Integer.parseInt(port);
-			if (portValue < 1024 || portValue > 65535)
+			if (portValue <= 1024 || portValue > 65535)
 				throw new ParseException("Invalid port number " + port);
-		} else {
+		} else
 			throw new ParseException("Invalid parameter.");
-		}
 
 		return new Catcher(ipAddress, portValue);
 	}
@@ -66,37 +64,33 @@ public class TCPPing {
 		if (commandLine.hasOption("port")) {
 			String port = commandLine.getOptionValue("port");
 			portValue = Integer.parseInt(port);
-			if (portValue < 1024 || portValue > 65535)
+			if (portValue <= 1024 || portValue > 65535)
 				throw new ParseException("Invalid port number " + port);
-		} else {
+		} else
 			throw new ParseException("Invalid parameter, should be port.");
-		}
 
 		if (commandLine.hasOption("mps")) {
 			String mps = commandLine.getOptionValue("mps");
 			mpsValue = Integer.parseInt(mps);
 			if (mpsValue < 1)
 				throw new ParseException("Invalid mps number " + mps);
-		} else {
+		} else
 			throw new ParseException("Invalid parameter, should be mps.");
-		}
 
 		if (commandLine.hasOption("size")) {
 			String size = commandLine.getOptionValue("size");
 			sizeValue = Integer.parseInt(size);
 			if (sizeValue < 50 || sizeValue > 3000)
 				throw new ParseException("Invalid size number " + size);
-		} else {
+		} else
 			sizeValue = 300;
-		}
 
 		if (args.length == 8)
 			hostName = args[7];
 		else
 			hostName = args[5];
 
-		InetAddressValidator validator = new InetAddressValidator();
-		if (!validator.isValidInet4Address(hostName))
+		if (!validator.isValidInet4Address(hostName) && !validator.isValidInet6Address(hostName))
 			throw new ParseException("Invalid IP address format: " + hostName);
 
 		return new Pitcher(hostName, portValue, mpsValue, sizeValue);
@@ -108,31 +102,27 @@ public class TCPPing {
 		Options options = new Options();
 		CommandLineParser parser = new DefaultParser();
 
-		options.addOption("c", false, "Role catcher.");
-		options.addOption("p", false, "Role pitcher");
-		options.addOption("bind", true, "Bind an IP addresss");
-		options.addOption("port", true, "Port number");
-		options.addOption("mps", true, "Number of messages per second");
-		options.addOption("size", true, "Message size");
-
-		if (args.length != 8 && args.length != 5 && args.length != 7) {
-			System.out.println("Invalid number of arguments: " + args.length);
-			printHelp();
-			return;
-		}
+		options.addOption("c", false, "");
+		options.addOption("p", false, "");
+		options.addOption("bind", true, "");
+		options.addOption("port", true, "");
+		options.addOption("mps", true, "");
+		options.addOption("size", true, "");
 
 		try {
 			commandLine = parser.parse(options, args);
 
 			if (commandLine.hasOption("c")) {
+				if (args.length != 5)
+					throw new ParseException("Invalid number of arguments: " + args.length);
 				tcpApp = processOptions(commandLine);
-				tcpApp.startTCPApp();
 			} else if (commandLine.hasOption("p")) {
+				if (args.length != 8 && args.length != 7)
+					throw new ParseException("Invalid number of arguments: " + args.length);
 				tcpApp = processOptions(commandLine, args);
-				tcpApp.startTCPApp();
-			} else {
+			} else
 				throw new ParseException("Invalid option.");
-			}
+			tcpApp.startTCPApp();
 		} catch (ParseException e) {
 			System.out.println(e.getMessage());
 			printHelp();

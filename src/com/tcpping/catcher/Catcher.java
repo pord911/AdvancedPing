@@ -14,22 +14,22 @@ import com.tcpping.tcpapp.TcpAppInterface;
 public class Catcher implements TcpAppInterface {
 	private String hostName;
 	private int port;
-	private TCPConnection connection;
-	private final ExecutorService workers;
 	private boolean keepAlive = true;
 
 	public Catcher(String hostName, int port) {
 		this.hostName = hostName;
 		this.port = port;
-		workers = Executors.newCachedThreadPool();
 	}
 
 	public void startTCPApp() {
+		TCPConnection connection = null;
 		Socket clientConnection = null;
+		final ExecutorService workers = Executors.newCachedThreadPool();
+
 		try {
 			connection = CreateTCPConnection.createTCPConnection(ConnType.CATCHER, hostName, port);
 			while (keepAlive) {
-				clientConnection = connection.acceptClientConnection();
+				clientConnection = connection.getClientSocket();
 				CatcherClientHandler clientHandler = new CatcherClientHandler(clientConnection);
 				workers.execute(clientHandler);
 			}
@@ -39,7 +39,8 @@ public class Catcher implements TcpAppInterface {
 			System.out.print(e.getMessage());
 		} finally {
 			try {
-				connection.closeConnection();
+				if (connection != null)
+					connection.closeConnection();
 				workers.shutdown();
 			} catch (IOException e) {
 				System.out.print(e.getMessage());

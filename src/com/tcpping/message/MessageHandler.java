@@ -1,6 +1,5 @@
 package com.tcpping.message;
 
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -8,90 +7,40 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.cli.ParseException;
 
-import com.tcpping.time.TimingClass;
 
 public class MessageHandler {
 	private MessageInputOutput messageIO;
-	private LinkedBlockingQueue<BufferQueueElement> queue;
+	private BlockingQueue<BufferQueueElement> queue;
 	private MessageContainer msgContainer;
 
 	public MessageHandler(MessageInputOutput messageIO, MessageContainer msgContainer) {
 		this.messageIO = messageIO;
-		queue = new LinkedBlockingQueue<BufferQueueElement>();
 		this.msgContainer = msgContainer;
+		queue = new LinkedBlockingQueue<BufferQueueElement>();
 	}
 
-	public void startReadingMessages() throws IOException {
-		(new Thread(new ReadMessages(messageIO))).start();
-	}
-
-	private class ReadMessages implements Runnable {
-		private MessageInputOutput messageIO;
-		private BufferQueueElement bufferElement;
-
-		public ReadMessages(MessageInputOutput messageIO) {
-			this.messageIO = messageIO;
-		}
-
-		public void run() {
-			String line = null;
-			long initTime = TimingClass.getTime();
-			long diff = 0;
-			int messageAcc = 0;
-			int numberOfMsgs = 0;
-			long currentTime = 0;
-			bufferElement = new BufferQueueElement();
-
-			try {
-				while ((line = messageIO.readMessage()) != null) {
-					currentTime = TimingClass.getTime();
-					diff = currentTime - initTime;
-					if (line.equals("OKBYE")) {
-						bufferElement.setMsgAcc(messageAcc);
-					    bufferElement.setMsgNumber(numberOfMsgs);
-						bufferElement.setCloseQueue(true);
-						queue.put(bufferElement);
-						break;
-					}
-
-					messageAcc++;
-					numberOfMsgs++;
-					bufferElement.addListElement(line, currentTime);
-
-					if (diff > 1000) {
-						initTime = TimingClass.getTime();
-						bufferElement.setMsgAcc(messageAcc);
-						bufferElement.setMsgNumber(numberOfMsgs);
-						queue.put((bufferElement));
-						numberOfMsgs = 0;
-						bufferElement = new BufferQueueElement();
-					}
-				}
-			} catch (IOException e) {
-				System.out.println(e.getMessage());
-			} catch (InterruptedException e) {
-				System.out.println(e.getMessage());
-			}
-		}
+	public void startReadingMessages() {
+		(new Thread(new MessageReader(messageIO, queue))).start();
 	}
 
 	public void processMessages() throws InterruptedException, ParseException, NumberFormatException  {
+		long time = 0;
+		int messageId;
 		BufferQueueElement obj;
 		Map<String, Long> list;
 		Set<String> keySet;
-		int messageId;
 		List<Long> roundTripList = new LinkedList<Long>();
 		List<Long> frontDirectionTimeList = new LinkedList<Long>();
 		List<Long> backDirectionTimeList = new LinkedList<Long>();
 		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 		Date date = new Date();
         StringBuilder printMessage = new StringBuilder();
-        long time = 0;
 
 		while ((obj = queue.poll(5000, TimeUnit.MILLISECONDS)) != null) {
 			printMessage.append(dateFormat.format(date))
@@ -103,9 +52,10 @@ public class MessageHandler {
 			for (String message : keySet) {
 				time = list.get(message);
 				messageId = (int) getValueFromMessage(message, null, "%");
-				if (!msgContainer.checkMessageId(messageId)) {
+
+				if (!msgContainer.checkMessageId(messageId))
 					continue;
-				}
+
 				roundTripList.add(time - getValueFromMessage(message, "%", "-"));
 				frontDirectionTimeList.add(getValueFromMessage(message, "&", "/"));
 				backDirectionTimeList.add(time - getValueFromMessage(message, "/", null));
@@ -120,16 +70,17 @@ public class MessageHandler {
 			backDirectionTimeList.clear();
 			roundTripList.clear();
 			printMessage.setLength(0);
-			// Reader thread finished reading, stop the consumer
-			if (obj.isCloseQueue())
+			/* Reader thread finished reading, stop the consumer */
+			if (obj.isCloseQueue()) {
+				String finalMessage = String.format("Messages sent: %d, Messages received: %d, "
+                                                  + "Messages lost: %d", msgContainer.getSentMessages() - 1, // remove BYE message
+                                                     obj.getMsgAcc(),
+                                                     msgContainer.getMessageListLenght());
+				System.out.println();
+				System.out.println(finalMessage);
 				break;
+			}
 		}
-		String finalMessage = String.format("Messages sent: %d, Messages received: %d, "
-				                          + "Messages lost: %d", msgContainer.getSentMessages() - 1, // remove BYE message
-				                                                   obj.getMsgAcc(),
-				                                                   msgContainer.getMessageListLenght());
-		System.out.println();
-		System.out.println(finalMessage);
 	}
 
 	private long getValueFromMessage(String message, String firstChar, String secondChar) throws ParseException, NumberFormatException {
@@ -146,7 +97,7 @@ public class MessageHandler {
 
 		if (secondChar != null) {
 			if ((lastIndex = message.indexOf(secondChar)) == -1)
-				throw new ParseException("Invalid char sequence in message " + firstChar);
+				throw new ParseException("Invalid char sequence in message " + secondChar);
 		} else
 			lastIndex = message.length();
 
@@ -163,6 +114,11 @@ public class MessageHandler {
 				maxTime = time;
 			accTime += time;
 		}
+
+		if (timeList.size() == 0) {
+			System.out.println("RTT timing list is emty.");
+			return "";
+		}
 		avgTime = String.format("%.3f", (double) accTime/timeList.size());
 
 		return " AvgRTT=" + avgTime + "ms" + " MaxRTT=" + Long.toString(maxTime) + "ms";
@@ -172,8 +128,12 @@ public class MessageHandler {
 		long accTime = 0;
 		String avgTime;
 
-		for (Long time : directionTimeList) {
+		for (Long time : directionTimeList)
 			accTime += time;
+
+		if (directionTimeList.size() == 0) {
+			System.out.println("Direction timing list is emty.");
+			return "";
 		}
 		avgTime = String.format("%.3f", (double) accTime/directionTimeList.size());
 

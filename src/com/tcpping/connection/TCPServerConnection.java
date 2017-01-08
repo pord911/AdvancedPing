@@ -11,19 +11,14 @@ public class TCPServerConnection implements TCPConnection {
 
 	public TCPServerConnection(String ipAddress, int port) throws UnknownHostException, IOException {
 		InetAddress address = InetAddress.getByName(ipAddress);
-		serverSocket = new ServerSocket(port, 1, address);
-	}
-
-	public Socket acceptClientConnection() throws IOException {
-		return serverSocket.accept();
+		serverSocket = new ServerSocket(port, 10, address);
 	}
 
 	public void closeConnection() throws IOException {
-		if (serverSocket != null)
-			serverSocket.close();
+		serverSocket.close();
 	}
 
-	public Socket getClientSocket() {
-		return null;
+	public Socket getClientSocket() throws IOException {
+		return serverSocket.accept();
 	}
 }

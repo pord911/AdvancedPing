@@ -8,13 +8,6 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public class MessageInputOutput {
-	/**
-	 * Printwriter ima metodu println koja stavlja \n na kraj svake poruke.
-	 * Newline je ovdje neovisan o platformi. Samim time BufferedReader odmah proèita
-	 * vrijednost iz buffer-a ako se u poruci nalazi \n. Ovime smo
-	 * izbjegli dodatno kašnjenje pri èitanju što više daje konzistentnost pri mjerenju kašnjenja
-	 * pomoæu ping-a.
-	 */
 	private PrintWriter writer;
 	private BufferedReader reader;
 
@@ -33,9 +26,7 @@ public class MessageInputOutput {
 	}
 
 	public void closeMessageStream() throws IOException {
-		if (writer != null)
-			writer.close();
-		if (reader != null)
-			reader.close();
+		writer.close();
+		reader.close();
 	}
 }

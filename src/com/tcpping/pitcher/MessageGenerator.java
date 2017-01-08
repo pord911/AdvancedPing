@@ -43,9 +43,9 @@ public class MessageGenerator extends TimerTask {
 	private String createMessage() {
 		long time = TimingClass.getTime();
 		String timeStr = Long.toString(time);
-		String message = RandomStringUtils.randomAlphabetic(size);
-
-	    messageId++;
+		/* Number 3 is for 'messageId', '&' and '-' */
+		String message = RandomStringUtils.randomAlphabetic(size - timeStr.length() - 3);
+		messageId++;
 	    return messageId + "%" + timeStr + "-" + message;
 	}
 
@@ -58,8 +58,7 @@ public class MessageGenerator extends TimerTask {
 			}
 			sentMessages += i;
 			pingCounter++;
-		} else {
+		} else
 			sendMessages("BYE");
-		}
 	}
 }

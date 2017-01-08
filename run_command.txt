@@ -1,0 +1,5 @@
+Catcher example:
+java -cp .;../lib/* com.tcpping.main.TCPPing -c -bind 127.0.0.1 -port 9900
+
+Pitcher example:
+java -cp .;../lib/* com.tcpping.main.TCPPing -p -port 9900 -mps 100 -size 2000 localhost

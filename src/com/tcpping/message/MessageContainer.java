@@ -1,9 +1,10 @@
 package com.tcpping.message;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class MessageContainer {
-	private LinkedHashMap<Integer, String> messageIdList;
+	private Map<Integer, String> messageIdList;
 	private int sentMessages = 0;
 
 	public MessageContainer() {

@@ -12,7 +12,6 @@ public class CreateTCPConnection {
 		case CATCHER:
 			return new TCPServerConnection(host, port);
 		default:
-			// TODO: add specific exception
 			throw new IOException();
 		}
 	}

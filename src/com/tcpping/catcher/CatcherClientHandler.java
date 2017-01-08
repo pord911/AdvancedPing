@@ -7,8 +7,8 @@ import com.tcpping.message.MessageInputOutput;
 import com.tcpping.time.TimingClass;
 
 public class CatcherClientHandler implements Runnable {
-	private MessageInputOutput msgHandler;
 	private Socket connection;
+	private MessageInputOutput msgHandler;
 	private StringBuilder msgAppend;
 
 	public CatcherClientHandler(Socket connection) throws IOException {
@@ -18,8 +18,9 @@ public class CatcherClientHandler implements Runnable {
 	}
 
 	private void startReadingMessages() {
-		String msg;
 		long catcherTime = 0;
+		String msg;
+
 		try {
 			while ((msg = msgHandler.readMessage()) != null) {
 				catcherTime = TimingClass.getTime();
@@ -34,7 +35,8 @@ public class CatcherClientHandler implements Runnable {
 			System.out.print(e.getMessage());
 		} finally {
 			try {
-				msgHandler.closeMessageStream();
+				if (msgHandler != null)
+					msgHandler.closeMessageStream();
 				if (connection != null)
 					connection.close();
 			} catch (IOException e) {
@@ -44,10 +46,18 @@ public class CatcherClientHandler implements Runnable {
 	}
 
 	private String appendTime(String message, long catcherTime) {
+		String timeDifference;
+		String catcherTimeStr;
+		int lastIndex;
+
 		msgAppend.setLength(0);
-		msgAppend.append(message);
-		msgAppend.append("&" + getDirectionTime(message, catcherTime))
-		         .append("/" + catcherTime);
+		timeDifference = getDirectionTime(message, catcherTime);
+		catcherTimeStr = Long.toString(catcherTime);
+		/* Number 2 is for characters '&' and '/' */
+		lastIndex = message.length() - timeDifference.length() - catcherTimeStr.length() - 2;
+		msgAppend.append(message.substring(0, lastIndex));
+		msgAppend.append("&" + timeDifference)
+		         .append("/" + catcherTimeStr);
 		return msgAppend.toString();
 	}
 

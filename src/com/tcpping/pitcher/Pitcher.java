@@ -19,10 +19,6 @@ public class Pitcher implements TcpAppInterface {
 	private int port;
 	private int messageNumber;
 	private int messageSize;
-	private MessageInputOutput messageIO;
-	private MessageHandler msgHandler;
-	private TCPConnection connection;
-	private MessageContainer msgContainer;
 	
 	public Pitcher(String hostName, int port, int messageNumber, int messageSize) {
 		this.hostName = hostName;
@@ -34,7 +30,13 @@ public class Pitcher implements TcpAppInterface {
 	public void startTCPApp() {
 		Timer timer = new Timer();
 		MessageGenerator msgGenerator = null;
+		MessageInputOutput messageIO = null;
+		TCPConnection connection = null;
+		MessageHandler msgHandler;
+		MessageContainer msgContainer;
+
 		try {
+
 			connection = CreateTCPConnection.createTCPConnection(ConnType.PITCHER, hostName, port);
 			messageIO = new MessageInputOutput(connection.getClientSocket());
 			msgContainer = new MessageContainer();
@@ -43,6 +45,7 @@ public class Pitcher implements TcpAppInterface {
 			timer.schedule(msgGenerator, 0, 1000);
 			msgHandler.startReadingMessages();
 			msgHandler.processMessages();
+
 		} catch (UnknownHostException e) {
 			System.out.println(e.getMessage());
 		} catch (IOException e) {
@@ -56,8 +59,10 @@ public class Pitcher implements TcpAppInterface {
 		} finally {
 			try {
 				timer.cancel();
-				messageIO.closeMessageStream();
-				connection.closeConnection();
+				if (messageIO != null)
+					messageIO.closeMessageStream();
+				if (connection != null)
+					connection.closeConnection();
 			} catch (IOException e) {
 				System.out.println(e.getMessage());
 			}
