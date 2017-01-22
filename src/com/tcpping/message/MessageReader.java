@@ -9,11 +9,23 @@ public class MessageReader implements Runnable {
 	private MessageInputOutput messageIO;
 	private BlockingQueue<BufferQueueElement> queue;
 
+	/**
+	 * Create an object for reading messages.
+	 * @param messageIO    Stream IO reference.
+	 * @param queue        Blocking queue.
+	 */
 	public MessageReader(MessageInputOutput messageIO, BlockingQueue<BufferQueueElement> queue) {
 		this.messageIO = messageIO;
 		this.queue = queue;
 	}
 
+	/**
+	 * Start a thread for reading messages. The thread reads
+	 * a message, stores it in a blocking queue and notifies the main
+	 * thread to process the message. The intention is to remove the
+	 * processing load from the receiving thread so that time measurements could
+	 * be more accurate.
+	 */
 	public void run() {
 		String line = null;
 		long initTime = TimingClass.getTime();
@@ -27,6 +39,9 @@ public class MessageReader implements Runnable {
 			while ((line = messageIO.readMessage()) != null) {
 				currentTime = TimingClass.getTime();
 				diff = currentTime - initTime;
+
+				/* Ok, we can close the stream, but process the last message
+				 * before closing. */
 				if (line.equals("OKBYE")) {
 					bufferElement.setMsgAcc(messageAcc);
 				    bufferElement.setMsgNumber(numberOfMsgs);
@@ -42,6 +57,8 @@ public class MessageReader implements Runnable {
 				if (diff > 1000) {
 					bufferElement.setMsgAcc(messageAcc);
 					bufferElement.setMsgNumber(numberOfMsgs);
+
+					/* Notify the main thread to process the message. */
 					queue.put((bufferElement));
 					numberOfMsgs = 0;
 					bufferElement = new BufferQueueElement();

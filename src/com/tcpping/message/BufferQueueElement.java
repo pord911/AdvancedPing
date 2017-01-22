@@ -3,6 +3,13 @@ package com.tcpping.message;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Object for storing message information.
+ * These values are extracted on message receival.
+ * The object stores a map of <Message, ArrivalTime>
+ * @author pord911
+ *
+ */
 public class BufferQueueElement {
 	private  Map<String, Long> lineList;
 	private int msgAcc;

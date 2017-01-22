@@ -16,11 +16,20 @@ public class Catcher implements TcpAppInterface {
 	private int port;
 	private boolean keepAlive = true;
 
+	/**
+	 * Catcher constructor.
+	 * @param hostName   Host name or IP address
+	 * @param port       Port number
+	 */
 	public Catcher(String hostName, int port) {
 		this.hostName = hostName;
 		this.port = port;
 	}
 
+	/**
+	 * Start catcher functionality. Create a connection on which to listen for
+	 * clients. Process each connection in a separate thread.
+	 */
 	public void startTCPApp() {
 		TCPConnection connection = null;
 		Socket clientConnection = null;
@@ -28,6 +37,11 @@ public class Catcher implements TcpAppInterface {
 
 		try {
 			connection = CreateTCPConnection.createTCPConnection(ConnType.CATCHER, hostName, port);
+
+			/*
+			 * keepAlive should probably be false at some point?
+			 * or it is ok to kill the Catcher manually?
+			 */
 			while (keepAlive) {
 				clientConnection = connection.getClientSocket();
 				CatcherClientHandler clientHandler = new CatcherClientHandler(clientConnection);

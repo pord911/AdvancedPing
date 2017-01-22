@@ -19,6 +19,13 @@ public class MessageGenerator extends TimerTask {
 	private int pingCounter = 0;
 	int sentMessages = 0;
 
+	/**
+	 * Create generator object for generating number of messages per second.
+	 * @param size            Size of the message.
+	 * @param msgPerSecond    Number of messages per second.
+	 * @param msgHandler      Reference for message handler.
+	 * @param msgContainer    Reference for message container.
+	 */
 	public MessageGenerator(int size, int msgPerSecond, MessageInputOutput msgHandler, MessageContainer msgContainer) {
 		this.size = size;
 		this.msgPerSecond = msgPerSecond;
@@ -26,6 +33,10 @@ public class MessageGenerator extends TimerTask {
 		this.msgContainer = msgContainer;
 	}
 
+	/**
+	 * Send a message and store it in the container/list
+	 * @param message    Message to send.
+	 */
 	private void sendMessages(String message) {
 		try {
 			msgHandler.writeMessage(message);
@@ -49,6 +60,11 @@ public class MessageGenerator extends TimerTask {
 	    return messageId + "%" + timeStr + "-" + message;
 	}
 
+	/**
+	 * Start the generator thread.
+	 * Send the configured number of messages 5 times.
+	 * After that send BYE indicating end of stream.
+	 */
 	@Override
 	public void run() {
 		int i;

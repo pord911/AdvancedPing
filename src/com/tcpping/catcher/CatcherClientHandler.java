@@ -11,12 +11,21 @@ public class CatcherClientHandler implements Runnable {
 	private MessageInputOutput msgHandler;
 	private StringBuilder msgAppend;
 
+	/**
+	 * Catcher handler.
+	 * @param connection    Socket connection
+	 * @throws IOException
+	 */
 	public CatcherClientHandler(Socket connection) throws IOException {
 		this.connection = connection;
 		msgHandler = new MessageInputOutput(connection);
 		msgAppend = new StringBuilder();
 	}
 
+	/**
+	 * Message reader. Reads each message, appends the necessary
+	 * information and sends it back on the stream.
+	 */
 	private void startReadingMessages() {
 		long catcherTime = 0;
 		String msg;
@@ -24,6 +33,8 @@ public class CatcherClientHandler implements Runnable {
 		try {
 			while ((msg = msgHandler.readMessage()) != null) {
 				catcherTime = TimingClass.getTime();
+
+				/* If client wants to close the connection, close it! */
 				if (msg.equals("BYE")) {
 					System.out.println("Sending BYE");
 					msgHandler.writeMessage("OKBYE");
@@ -45,6 +56,14 @@ public class CatcherClientHandler implements Runnable {
 		}
 	}
 
+	/**
+	 * Append A->B time difference and receival time
+	 * to the received message. The newly created message will have
+	 * the following syntax: MESSAGE%ABTIME/RECEIVALTIME
+	 * @param message      Received message
+	 * @param catcherTime  Time when the message was received
+	 * @return
+	 */
 	private String appendTime(String message, long catcherTime) {
 		String timeDifference;
 		String catcherTimeStr;
@@ -61,6 +80,12 @@ public class CatcherClientHandler implements Runnable {
 		return msgAppend.toString();
 	}
 
+	/**
+	 * Calculate A->B time difference.
+	 * @param message      Received message.
+	 * @param catcherTime  Time when the message was received
+	 * @return
+	 */
 	private String getDirectionTime(String message, long catcherTime) {
 		int firstIndex = message.indexOf("%");
 		int lastIndex = message.indexOf("-");
@@ -69,6 +94,9 @@ public class CatcherClientHandler implements Runnable {
 		return Long.toString(catcherTime - directionTime);
 	}
 
+	/**
+	 * Start thread.
+	 */
 	public void run() {
 		startReadingMessages();
 	}

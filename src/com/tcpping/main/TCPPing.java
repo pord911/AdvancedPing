@@ -14,6 +14,9 @@ import com.tcpping.tcpapp.TcpAppInterface;
 public class TCPPing {
 	private static InetAddressValidator validator = new InetAddressValidator();
 
+	/**
+	 * Print command help.
+	 */
 	public static void printHelp() {
 		String helpMessage;
 
@@ -33,6 +36,13 @@ public class TCPPing {
 		System.out.println(helpMessage);
 	}
 
+	/**
+	 * Process catcher options
+	 * @param commandLine   CommandLine object reference
+	 * @return              Reference to a created catcher object
+	 * @throws ParseException
+	 * @throws NumberFormatException
+	 */
 	public static Catcher processOptions(CommandLine commandLine) throws ParseException, NumberFormatException {
 		String ipAddress;
 		int portValue;
@@ -55,6 +65,14 @@ public class TCPPing {
 		return new Catcher(ipAddress, portValue);
 	}
 
+	/**
+	 * Process command      line options.
+	 * @param commandLine   CommandLine object reference
+	 * @param args          Arguments passed from the command line
+	 * @return              Reference to Pitcher object
+	 * @throws ParseException
+	 * @throws NumberFormatException
+	 */
 	public static Pitcher processOptions(CommandLine commandLine, String[] args) throws ParseException, NumberFormatException {
 		int portValue;
 		int mpsValue;

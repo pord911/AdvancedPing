@@ -19,16 +19,30 @@ public class MessageHandler {
 	private BlockingQueue<BufferQueueElement> queue;
 	private MessageContainer msgContainer;
 
+	/**
+	 * Create message handler for handling each received message.
+	 * @param messageIO    Stream IO reference.
+	 * @param msgContainer Container of sent messages.
+	 */
 	public MessageHandler(MessageInputOutput messageIO, MessageContainer msgContainer) {
 		this.messageIO = messageIO;
 		this.msgContainer = msgContainer;
 		queue = new LinkedBlockingQueue<BufferQueueElement>();
 	}
 
+	/**
+	 * Start a thread for reading messages.
+	 */
 	public void startReadingMessages() {
 		(new Thread(new MessageReader(messageIO, queue))).start();
 	}
 
+	/**
+	 * Process received messages. Extract the timings, format and print the required message.
+	 * @throws InterruptedException
+	 * @throws ParseException
+	 * @throws NumberFormatException
+	 */
 	public void processMessages() throws InterruptedException, ParseException, NumberFormatException  {
 		long time = 0;
 		int messageId;
@@ -42,6 +56,8 @@ public class MessageHandler {
 		Date date = new Date();
         StringBuilder printMessage = new StringBuilder();
 
+        /* Wait 5s for the reading thread to notify
+         * that a certain number of msgs have been received. */
 		while ((obj = queue.poll(5000, TimeUnit.MILLISECONDS)) != null) {
 			printMessage.append(dateFormat.format(date))
 			            .append(": Total=" + Integer.toString(obj.getMsgAcc()))
@@ -83,6 +99,16 @@ public class MessageHandler {
 		}
 	}
 
+	/**
+	 * Retrieve time from a received message based on the syntax.
+	 * E.g. Retrieve a value between '&' and '/'
+	 * @param message     Received message.
+	 * @param firstChar   Starting character.
+	 * @param secondChar  Ending character.
+	 * @return            Retrieved time.
+	 * @throws ParseException
+	 * @throws NumberFormatException
+	 */
 	private long getValueFromMessage(String message, String firstChar, String secondChar) throws ParseException, NumberFormatException {
 		int firstIndex = 0;
 		int lastIndex = 0;
@@ -104,6 +130,12 @@ public class MessageHandler {
 		return Long.decode(message.substring(firstIndex, lastIndex));
 	}
 
+	/**
+	 * Calculate the average and max time for the number of received messages.
+	 * @param timeList     List of time stamps within 1 second.
+	 * @return             String format for printing the average time and max time.
+	 * @throws NumberFormatException
+	 */
 	private String calculateAvgAndMaxTime(List<Long> timeList) throws NumberFormatException {
 		long accTime = 0;
 		long maxTime = 0;
@@ -124,6 +156,13 @@ public class MessageHandler {
 		return " AvgRTT=" + avgTime + "ms" + " MaxRTT=" + Long.toString(maxTime) + "ms";
 	}
 
+	/**
+	 * Calculate average B->A or A->B time for each message.
+	 * @param directionTimeList   List of time stamps.
+	 * @param printMsgString      Print format for A->B or B->A.
+	 * @return                    Calculated and formated average time.
+	 * @throws NumberFormatException
+	 */
 	private String calculateAvgDirectionTime(List<Long> directionTimeList, String printMsgString) throws NumberFormatException {
 		long accTime = 0;
 		String avgTime;

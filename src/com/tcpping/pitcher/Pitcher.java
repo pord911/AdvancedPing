@@ -19,7 +19,14 @@ public class Pitcher implements TcpAppInterface {
 	private int port;
 	private int messageNumber;
 	private int messageSize;
-	
+
+	/**
+	 * Create Pitcher object.
+	 * @param hostName      Host name or IP address.
+	 * @param port          Port number.
+	 * @param messageNumber Number of messages to send each second
+	 * @param messageSize   Size of each message.
+	 */
 	public Pitcher(String hostName, int port, int messageNumber, int messageSize) {
 		this.hostName = hostName;
 		this.messageNumber = messageNumber;
@@ -27,6 +34,11 @@ public class Pitcher implements TcpAppInterface {
 		this.port = port;
 	}
 
+	/**
+	 * Start running Pitcher object. Create a generator
+	 * which will run in a separate thread, and a message handler
+	 * which will receive back the sent messages.
+	 */
 	public void startTCPApp() {
 		Timer timer = new Timer();
 		MessageGenerator msgGenerator = null;
