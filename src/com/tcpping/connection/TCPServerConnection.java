@@ -7,7 +7,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class TCPServerConnection implements TCPConnection {
-	ServerSocket serverSocket = null;
+	private ServerSocket serverSocket = null;
 
 	/**
 	 * Create a TCP server connection. Accept max 10 connections.

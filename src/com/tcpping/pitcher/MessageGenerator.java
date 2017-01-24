@@ -17,7 +17,7 @@ public class MessageGenerator extends TimerTask {
 	private int messageId = 0;
 	private MessageContainer msgContainer;
 	private int pingCounter = 0;
-	int sentMessages = 0;
+	private int sentMessages = 0;
 
 	/**
 	 * Create generator object for generating number of messages per second.

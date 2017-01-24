@@ -5,7 +5,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class TCPClientConnection implements TCPConnection {
-	Socket clientSocket;
+	private Socket clientSocket;
 
 	/**
 	 * Create a TCP client connection.

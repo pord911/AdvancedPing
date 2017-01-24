@@ -42,7 +42,7 @@ public class MessageReader implements Runnable {
 
 				/* Ok, we can close the stream, but process the last message
 				 * before closing. */
-				if (line.equals("OKBYE")) {
+				if ("OKBYE".equals(line)) {
 					bufferElement.setMsgAcc(messageAcc);
 				    bufferElement.setMsgNumber(numberOfMsgs);
 					bufferElement.setCloseQueue(true);

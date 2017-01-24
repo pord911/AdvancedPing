@@ -35,7 +35,7 @@ public class CatcherClientHandler implements Runnable {
 				catcherTime = TimingClass.getTime();
 
 				/* If client wants to close the connection, close it! */
-				if (msg.equals("BYE")) {
+				if ("BYE".equals(msg)) {
 					System.out.println("Sending BYE");
 					msgHandler.writeMessage("OKBYE");
 					break;
