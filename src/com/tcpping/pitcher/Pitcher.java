@@ -12,6 +12,7 @@ import com.tcpping.connection.ConnType;
 import com.tcpping.connection.CreateTCPConnection;
 import com.tcpping.connection.TCPConnection;
 import com.tcpping.message.BufferQueueElement;
+import com.tcpping.message.Message;
 import com.tcpping.message.MessageContainer;
 import com.tcpping.message.MessageHandler;
 import com.tcpping.message.MessageInput;
@@ -50,7 +51,7 @@ public class Pitcher implements TcpAppInterface {
 		TCPConnection connection = null;
 		MessageHandler msgHandler;
 		MessageContainer msgContainer;
-		BlockingQueue<BufferQueueElement> queue = new LinkedBlockingQueue<BufferQueueElement>();
+		BlockingQueue<Message> queue = new LinkedBlockingQueue<Message>();
 
 		try {
 

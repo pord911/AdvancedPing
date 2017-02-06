@@ -26,7 +26,7 @@ public class MessageGenerator extends TimerTask {
 	 * @param msgPerSecond    Number of messages per second.
 	 * @param msgHandler      Reference for message handler.
 	 * @param msgContainer    Reference for message container.
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public MessageGenerator(int size, int msgPerSecond, TCPConnection connection, MessageContainer msgContainer) throws IOException {
 		this.size = size;

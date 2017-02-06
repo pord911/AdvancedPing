@@ -1,12 +1,6 @@
 package com.tcpping.message;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -14,7 +8,7 @@ import org.apache.commons.cli.ParseException;
 
 
 public class MessageHandler {
-	private BlockingQueue<BufferQueueElement> queue;
+	private BlockingQueue<Message> queue;
 	private MessageContainer msgContainer;
 
 	/**
@@ -22,7 +16,7 @@ public class MessageHandler {
 	 * @param messageIO    Stream IO reference.
 	 * @param msgContainer Container of sent messages.
 	 */
-	public MessageHandler(BlockingQueue<BufferQueueElement> queue, MessageContainer msgContainer) {
+	public MessageHandler(BlockingQueue<Message> queue, MessageContainer msgContainer) {
 		this.msgContainer = msgContainer;
 		this.queue = queue;
 	}
@@ -34,59 +28,17 @@ public class MessageHandler {
 	 * @throws NumberFormatException
 	 */
 	public void processMessages() throws InterruptedException, ParseException, NumberFormatException  {
-		long time = 0;
-		int messageId;
-		BufferQueueElement obj;
-		Map<String, Long> list;
-		Set<String> keySet;
-		List<Long> roundTripList = new LinkedList<Long>();
-		List<Long> frontDirectionTimeList = new LinkedList<Long>();
-		List<Long> backDirectionTimeList = new LinkedList<Long>();
-		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-		Date date = new Date();
-        StringBuilder printMessage = new StringBuilder();
-
+		Message obj;
+		int messageAcc = 0;
+		//int msgPerSec = 0;
+		//long t1 = System.nanoTime();
         /* Wait 5s for the reading thread to notify
          * that a certain number of msgs have been received. */
 		while ((obj = queue.poll(5000, TimeUnit.MILLISECONDS)) != null) {
-			printMessage.append(dateFormat.format(date))
-			            .append(": Total=" + Integer.toString(obj.getMsgAcc()))
-			            .append(" Rate=" + Integer.toString(obj.getMsgNumber()) + "/s");
-
-			list = obj.getLineList();
-			keySet = list.keySet();
-			for (String message : keySet) {
-				time = list.get(message);
-				messageId = (int) getValueFromMessage(message, null, "%");
-
-				if (!msgContainer.checkMessageId(messageId))
-					continue;
-
-				roundTripList.add(time - getValueFromMessage(message, "%", "-"));
-				frontDirectionTimeList.add(getValueFromMessage(message, "&", "/"));
-				backDirectionTimeList.add(time - getValueFromMessage(message, "/", null));
-			}
-			printMessage.append(calculateAvgAndMaxTime(roundTripList))
-			            .append(calculateAvgDirectionTime(frontDirectionTimeList, " A->B="))
-			            .append(calculateAvgDirectionTime(backDirectionTimeList, " B->A="));
-
-			System.out.println(printMessage.toString());
-
-			frontDirectionTimeList.clear();
-			backDirectionTimeList.clear();
-			roundTripList.clear();
-			printMessage.setLength(0);
-			/* Reader thread finished reading, stop the consumer */
-			if (obj.isCloseQueue()) {
-				String finalMessage = String.format("Messages sent: %d, Messages received: %d, "
-                                                  + "Messages lost: %d", msgContainer.getSentMessages() - 1, // remove BYE message
-                                                     obj.getMsgAcc(),
-                                                     msgContainer.getMessageListLenght());
-				System.out.println();
-				System.out.println(finalMessage);
-				break;
-			}
+			messageAcc++;
+			System.out.println("Received message:" + obj.getMessage());
 		}
+		System.out.println("Total messages received:" + messageAcc);
 	}
 
 	/**
