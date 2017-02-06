@@ -6,7 +6,7 @@ import java.util.concurrent.BlockingQueue;
 import com.tcpping.time.TimingClass;
 
 public class MessageReader implements Runnable {
-	private MessageInputOutput messageIO;
+	private MessageInput messageIO;
 	private BlockingQueue<BufferQueueElement> queue;
 
 	/**
@@ -14,7 +14,7 @@ public class MessageReader implements Runnable {
 	 * @param messageIO    Stream IO reference.
 	 * @param queue        Blocking queue.
 	 */
-	public MessageReader(MessageInputOutput messageIO, BlockingQueue<BufferQueueElement> queue) {
+	public MessageReader(MessageInput messageIO, BlockingQueue<BufferQueueElement> queue) {
 		this.messageIO = messageIO;
 		this.queue = queue;
 	}

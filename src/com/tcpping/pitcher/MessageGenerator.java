@@ -6,14 +6,14 @@ import java.util.TimerTask;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import com.tcpping.message.MessageContainer;
-import com.tcpping.message.MessageInputOutput;
+import com.tcpping.message.MessageOutput;
 import com.tcpping.time.TimingClass;
 
 
 public class MessageGenerator extends TimerTask {
 	private int size;
 	private int msgPerSecond;
-	private MessageInputOutput msgHandler;
+	private MessageOutput msgHandler;
 	private int messageId = 0;
 	private MessageContainer msgContainer;
 	private int pingCounter = 0;
@@ -26,7 +26,7 @@ public class MessageGenerator extends TimerTask {
 	 * @param msgHandler      Reference for message handler.
 	 * @param msgContainer    Reference for message container.
 	 */
-	public MessageGenerator(int size, int msgPerSecond, MessageInputOutput msgHandler, MessageContainer msgContainer) {
+	public MessageGenerator(int size, int msgPerSecond, MessageOutput msgHandler, MessageContainer msgContainer) {
 		this.size = size;
 		this.msgPerSecond = msgPerSecond;
 		this.msgHandler = msgHandler;

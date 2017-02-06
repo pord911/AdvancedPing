@@ -11,7 +11,8 @@ import com.tcpping.connection.CreateTCPConnection;
 import com.tcpping.connection.TCPConnection;
 import com.tcpping.message.MessageContainer;
 import com.tcpping.message.MessageHandler;
-import com.tcpping.message.MessageInputOutput;
+import com.tcpping.message.MessageInput;
+import com.tcpping.message.MessageOutput;
 import com.tcpping.tcpapp.TcpAppInterface;
 
 public class Pitcher implements TcpAppInterface {
@@ -42,7 +43,8 @@ public class Pitcher implements TcpAppInterface {
 	public void startTCPApp() {
 		Timer timer = new Timer();
 		MessageGenerator msgGenerator = null;
-		MessageInputOutput messageIO = null;
+		MessageInput reader = null;
+		MessageOutput writer = null;
 		TCPConnection connection = null;
 		MessageHandler msgHandler;
 		MessageContainer msgContainer;
@@ -50,10 +52,11 @@ public class Pitcher implements TcpAppInterface {
 		try {
 
 			connection = CreateTCPConnection.createTCPConnection(ConnType.PITCHER, hostName, port);
-			messageIO = new MessageInputOutput(connection.getClientSocket());
+			reader = new MessageInput(connection.getClientSocket());
+			writer = new MessageOutput(connection.getClientSocket());
 			msgContainer = new MessageContainer();
-			msgHandler = new MessageHandler(messageIO, msgContainer);
-			msgGenerator = new MessageGenerator(messageSize, messageNumber, messageIO, msgContainer);
+			msgHandler = new MessageHandler(reader, msgContainer);
+			msgGenerator = new MessageGenerator(messageSize, messageNumber, writer, msgContainer);
 			timer.schedule(msgGenerator, 0, 1000);
 			msgHandler.startReadingMessages();
 			msgHandler.processMessages();
@@ -71,8 +74,10 @@ public class Pitcher implements TcpAppInterface {
 		} finally {
 			try {
 				timer.cancel();
-				if (messageIO != null)
-					messageIO.closeMessageStream();
+				if (reader != null)
+					reader.closeInputMessageStream();
+				if (writer != null)
+					writer.closeOutputMessageStream();
 				if (connection != null)
 					connection.closeConnection();
 			} catch (IOException e) {

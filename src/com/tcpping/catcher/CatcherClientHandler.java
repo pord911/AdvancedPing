@@ -3,12 +3,14 @@ package com.tcpping.catcher;
 import java.io.IOException;
 import java.net.Socket;
 
-import com.tcpping.message.MessageInputOutput;
+import com.tcpping.message.MessageInput;
+import com.tcpping.message.MessageOutput;
 import com.tcpping.time.TimingClass;
 
 public class CatcherClientHandler implements Runnable {
 	private Socket connection;
-	private MessageInputOutput msgHandler;
+	private MessageInput reader;
+	private MessageOutput writer;
 	private StringBuilder msgAppend;
 
 	/**
@@ -18,7 +20,8 @@ public class CatcherClientHandler implements Runnable {
 	 */
 	public CatcherClientHandler(Socket connection) throws IOException {
 		this.connection = connection;
-		msgHandler = new MessageInputOutput(connection);
+		writer = new MessageOutput(connection);
+		reader = new MessageInput(connection);
 		msgAppend = new StringBuilder();
 	}
 
@@ -31,23 +34,25 @@ public class CatcherClientHandler implements Runnable {
 		String msg;
 
 		try {
-			while ((msg = msgHandler.readMessage()) != null) {
+			while ((msg = reader.readMessage()) != null) {
 				catcherTime = TimingClass.getTime();
 
 				/* If client wants to close the connection, close it! */
 				if ("BYE".equals(msg)) {
 					System.out.println("Sending BYE");
-					msgHandler.writeMessage("OKBYE");
+					writer.writeMessage("OKBYE");
 					break;
 				}
-				msgHandler.writeMessage(appendTime(msg, catcherTime));
+				writer.writeMessage(appendTime(msg, catcherTime));
 			}
 		} catch (IOException e) {
 			System.out.print(e.getMessage());
 		} finally {
 			try {
-				if (msgHandler != null)
-					msgHandler.closeMessageStream();
+				if (writer != null)
+					writer.closeOutputMessageStream();
+				if (reader != null)
+					reader.closeInputMessageStream();
 				if (connection != null)
 					connection.close();
 			} catch (IOException e) {

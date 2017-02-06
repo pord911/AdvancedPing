@@ -15,7 +15,7 @@ import org.apache.commons.cli.ParseException;
 
 
 public class MessageHandler {
-	private MessageInputOutput messageIO;
+	private MessageInput messageIO;
 	private BlockingQueue<BufferQueueElement> queue;
 	private MessageContainer msgContainer;
 
@@ -24,7 +24,7 @@ public class MessageHandler {
 	 * @param messageIO    Stream IO reference.
 	 * @param msgContainer Container of sent messages.
 	 */
-	public MessageHandler(MessageInputOutput messageIO, MessageContainer msgContainer) {
+	public MessageHandler(MessageInput messageIO, MessageContainer msgContainer) {
 		this.messageIO = messageIO;
 		this.msgContainer = msgContainer;
 		queue = new LinkedBlockingQueue<BufferQueueElement>();
