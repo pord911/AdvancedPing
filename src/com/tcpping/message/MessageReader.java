@@ -3,6 +3,7 @@ package com.tcpping.message;
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 
+import com.tcpping.connection.TCPConnection;
 import com.tcpping.time.TimingClass;
 
 public class MessageReader implements Runnable {
@@ -13,9 +14,10 @@ public class MessageReader implements Runnable {
 	 * Create an object for reading messages.
 	 * @param messageIO    Stream IO reference.
 	 * @param queue        Blocking queue.
+	 * @throws IOException 
 	 */
-	public MessageReader(MessageInput messageIO, BlockingQueue<BufferQueueElement> queue) {
-		this.messageIO = messageIO;
+	public MessageReader(TCPConnection connection, BlockingQueue<BufferQueueElement> queue) throws IOException {
+		this.messageIO = new MessageInput(connection.getClientSocket());
 		this.queue = queue;
 	}
 

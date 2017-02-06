@@ -27,7 +27,7 @@ public class MessageInput {
 	}
 
 	/**
-	 * Close IO stream.
+	 * Close input stream.
 	 * @throws IOException
 	 */
 	public void closeInputMessageStream() throws IOException {

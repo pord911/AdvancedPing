@@ -3,16 +3,20 @@ package com.tcpping.pitcher;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.Timer;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.cli.ParseException;
 
 import com.tcpping.connection.ConnType;
 import com.tcpping.connection.CreateTCPConnection;
 import com.tcpping.connection.TCPConnection;
+import com.tcpping.message.BufferQueueElement;
 import com.tcpping.message.MessageContainer;
 import com.tcpping.message.MessageHandler;
 import com.tcpping.message.MessageInput;
 import com.tcpping.message.MessageOutput;
+import com.tcpping.message.MessageReader;
 import com.tcpping.tcpapp.TcpAppInterface;
 
 public class Pitcher implements TcpAppInterface {
@@ -43,24 +47,20 @@ public class Pitcher implements TcpAppInterface {
 	public void startTCPApp() {
 		Timer timer = new Timer();
 		MessageGenerator msgGenerator = null;
-		MessageInput reader = null;
-		MessageOutput writer = null;
 		TCPConnection connection = null;
 		MessageHandler msgHandler;
 		MessageContainer msgContainer;
+		BlockingQueue<BufferQueueElement> queue = new LinkedBlockingQueue<BufferQueueElement>();
 
 		try {
 
 			connection = CreateTCPConnection.createTCPConnection(ConnType.PITCHER, hostName, port);
-			reader = new MessageInput(connection.getClientSocket());
-			writer = new MessageOutput(connection.getClientSocket());
 			msgContainer = new MessageContainer();
-			msgHandler = new MessageHandler(reader, msgContainer);
-			msgGenerator = new MessageGenerator(messageSize, messageNumber, writer, msgContainer);
+			msgHandler = new MessageHandler(queue, msgContainer);
+			msgGenerator = new MessageGenerator(messageSize, messageNumber, connection, msgContainer);
+			(new Thread(new MessageReader(connection, queue))).start();
 			timer.schedule(msgGenerator, 0, 1000);
-			msgHandler.startReadingMessages();
 			msgHandler.processMessages();
-
 		} catch (UnknownHostException e) {
 			System.out.println(e.getMessage());
 		} catch (IOException e) {
@@ -74,10 +74,6 @@ public class Pitcher implements TcpAppInterface {
 		} finally {
 			try {
 				timer.cancel();
-				if (reader != null)
-					reader.closeInputMessageStream();
-				if (writer != null)
-					writer.closeOutputMessageStream();
 				if (connection != null)
 					connection.closeConnection();
 			} catch (IOException e) {

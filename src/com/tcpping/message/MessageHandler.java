@@ -8,14 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.cli.ParseException;
 
 
 public class MessageHandler {
-	private MessageInput messageIO;
 	private BlockingQueue<BufferQueueElement> queue;
 	private MessageContainer msgContainer;
 
@@ -24,17 +22,9 @@ public class MessageHandler {
 	 * @param messageIO    Stream IO reference.
 	 * @param msgContainer Container of sent messages.
 	 */
-	public MessageHandler(MessageInput messageIO, MessageContainer msgContainer) {
-		this.messageIO = messageIO;
+	public MessageHandler(BlockingQueue<BufferQueueElement> queue, MessageContainer msgContainer) {
 		this.msgContainer = msgContainer;
-		queue = new LinkedBlockingQueue<BufferQueueElement>();
-	}
-
-	/**
-	 * Start a thread for reading messages.
-	 */
-	public void startReadingMessages() {
-		(new Thread(new MessageReader(messageIO, queue))).start();
+		this.queue = queue;
 	}
 
 	/**

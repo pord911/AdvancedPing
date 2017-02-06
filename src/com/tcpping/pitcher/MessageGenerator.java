@@ -5,6 +5,7 @@ import java.util.TimerTask;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
+import com.tcpping.connection.TCPConnection;
 import com.tcpping.message.MessageContainer;
 import com.tcpping.message.MessageOutput;
 import com.tcpping.time.TimingClass;
@@ -25,11 +26,12 @@ public class MessageGenerator extends TimerTask {
 	 * @param msgPerSecond    Number of messages per second.
 	 * @param msgHandler      Reference for message handler.
 	 * @param msgContainer    Reference for message container.
+	 * @throws IOException 
 	 */
-	public MessageGenerator(int size, int msgPerSecond, MessageOutput msgHandler, MessageContainer msgContainer) {
+	public MessageGenerator(int size, int msgPerSecond, TCPConnection connection, MessageContainer msgContainer) throws IOException {
 		this.size = size;
 		this.msgPerSecond = msgPerSecond;
-		this.msgHandler = msgHandler;
+		this.msgHandler = new MessageOutput(connection.getClientSocket());
 		this.msgContainer = msgContainer;
 	}
 
