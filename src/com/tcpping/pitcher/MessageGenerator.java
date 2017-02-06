@@ -6,12 +6,15 @@ import java.util.TimerTask;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import com.tcpping.connection.TCPConnection;
+import com.tcpping.message.Message;
 import com.tcpping.message.MessageContainer;
 import com.tcpping.message.MessageOutput;
 import com.tcpping.time.TimingClass;
 
 
 public class MessageGenerator extends TimerTask {
+	private final String CLOSE = "BYE";
+	private int PINGS = 5;
 	private int size;
 	private int msgPerSecond;
 	private MessageOutput msgHandler;
@@ -19,6 +22,7 @@ public class MessageGenerator extends TimerTask {
 	private MessageContainer msgContainer;
 	private int pingCounter = 0;
 	private int sentMessages = 0;
+	private StringBuilder buildMessage;
 
 	/**
 	 * Create generator object for generating number of messages per second.
@@ -33,16 +37,27 @@ public class MessageGenerator extends TimerTask {
 		this.msgPerSecond = msgPerSecond;
 		this.msgHandler = new MessageOutput(connection.getClientSocket());
 		this.msgContainer = msgContainer;
+		this.buildMessage = new StringBuilder();
 	}
 
 	/**
 	 * Send a message and store it in the container/list
 	 * @param message    Message to send.
 	 */
-	private void sendMessages(String message) {
+	private void sendMessages() {
+		int i;
+		Message message;
 		try {
-			msgHandler.writeMessage(message);
-			msgContainer.storeMessage(messageId);
+			if (pingCounter < PINGS) {
+				for (i = 0; i < msgPerSecond; i++) {
+					message = createMessage();
+					msgHandler.writeMessage(message.getMessage());
+					msgContainer.storeMessage(message);
+				}
+			} else {
+				msgHandler.writeMessage(CLOSE);
+			}
+			pingCounter++;
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		}
@@ -53,13 +68,18 @@ public class MessageGenerator extends TimerTask {
 	 * MessageId%timeInMillis-randomChars
 	 * @return
 	 */
-	private String createMessage() {
-		long time = TimingClass.getTime();
-		String timeStr = Long.toString(time);
-		/* Number 3 is for 'messageId', '&' and '-' */
-		String message = RandomStringUtils.randomAlphabetic(size - timeStr.length() - 3);
-		messageId++;
-	    return messageId + "%" + timeStr + "-" + message;
+	private Message createMessage() {
+		Message message = new Message();
+		String timeStr = Long.toString(message.getTimeStamp());
+		buildMessage.setLength(0);
+		buildMessage.append(++messageId)
+		            .append("%")
+		            .append(Long.toString(message.getTimeStamp()))
+		            .append("-")
+		            .append(RandomStringUtils.randomAlphabetic(size - timeStr.length() - 3));
+		message.setMessage(buildMessage.toString());
+		message.setMessageId(messageId);
+	    return message;
 	}
 
 	/**
@@ -69,14 +89,6 @@ public class MessageGenerator extends TimerTask {
 	 */
 	@Override
 	public void run() {
-		int i;
-		if (pingCounter < 5) {
-			for (i = 0; i < msgPerSecond; i++) {
-				sendMessages(createMessage());
-			}
-			sentMessages += i;
-			pingCounter++;
-		} else
-			sendMessages("BYE");
+		sendMessages();
 	}
 }

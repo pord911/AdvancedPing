@@ -4,22 +4,22 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MessageContainer {
-	private Map<Integer, String> messageIdList;
+	private Map<Integer, Message> messageIdList;
 	private int sentMessages = 0;
 
 	/**
 	 * Create a container object which will store each sent message
 	 */
 	public MessageContainer() {
-		messageIdList = new LinkedHashMap<Integer, String>();
+		messageIdList = new LinkedHashMap<Integer, Message>();
 	}
 
 	/**
 	 * Store each message.
 	 * @param messageId    Message id.
 	 */
-	public synchronized void storeMessage(int messageId) {
-		messageIdList.put(messageId, Integer.toString(messageId));
+	public synchronized void storeMessage(Message message) {
+		messageIdList.put(message.getMessageId(), message);
 		sentMessages++;
 	}
 
