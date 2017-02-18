@@ -20,32 +20,44 @@ Position in the bin directory and run the following commands:
 To run the application in the Catcher mode:
 
 Windows:
+
 java -cp .;../lib/* com.tcpping.main.TCPPing -c -bind 127.0.0.1 -port 9900
 
 Linux:
+
 java -cp .:../lib/* com.tcpping.main.TCPPing -c -bind 127.0.0.1 -port 9900
 
 To run the application in the Pitcher mode:
 
 Windows:
+
 java -cp .;../lib/* com.tcpping.main.TCPPing -p -port 9900 -mps 100 -size 2000 localhost
 
-Linux
+Linux:
+
 java -cp .:../lib/* com.tcpping.main.TCPPing -p -port 9900 -mps 100 -size 2000 localhost
 
 Options
 
 Catcher mode:
 
-   -c    Run the application in the Catcher mode
+   -c    Run the application in the Catcher mode.
+
    -bind Bind the Catcher to an IP address on which it listens for messages.
+
    -port Port on which the Catcher listens for messages.
+
 
 Pitcher mode:
 
-   -p     Run the application in the Pitcher mode
+   -p     Run the application in the Pitcher mode.
+
    -port  Port number.
+ 
    -mps   Messages per second.
+ 
    -size  Message size in characters, default is 300.
+ 
    <host> Hostname or IP address.
+ 
 
