@@ -1,4 +1,4 @@
-package com.tcpping.message;
+package com.javaping.message;
 
 import java.io.BufferedReader;
 import java.io.IOException;

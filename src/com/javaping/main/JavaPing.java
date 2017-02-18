@@ -1,4 +1,4 @@
-package com.tcpping.main;
+package com.javaping.main;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -7,11 +7,11 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.validator.routines.InetAddressValidator;
 
-import com.tcpping.catcher.Catcher;
-import com.tcpping.pitcher.Pitcher;
-import com.tcpping.tcpapp.TcpAppInterface;
+import com.javaping.catcher.Catcher;
+import com.javaping.pitcher.Pitcher;
+import com.javaping.tcpapp.TcpAppInterface;
 
-public class TCPPing {
+public class JavaPing {
 	private static InetAddressValidator validator = new InetAddressValidator();
 
 	/**

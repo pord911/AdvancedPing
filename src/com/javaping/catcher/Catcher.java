@@ -1,4 +1,4 @@
-package com.tcpping.catcher;
+package com.javaping.catcher;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -6,10 +6,10 @@ import java.net.UnknownHostException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.tcpping.connection.ConnType;
-import com.tcpping.connection.CreateTCPConnection;
-import com.tcpping.connection.TCPConnection;
-import com.tcpping.tcpapp.TcpAppInterface;
+import com.javaping.connection.ConnType;
+import com.javaping.connection.CreateTCPConnection;
+import com.javaping.connection.TCPConnection;
+import com.javaping.tcpapp.TcpAppInterface;
 
 public class Catcher implements TcpAppInterface {
 	private String hostName;

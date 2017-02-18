@@ -1,4 +1,4 @@
-package com.tcpping.message;
+package com.javaping.message;
 
 public class MessageCounter {
 	private static int sentMessages = 0;

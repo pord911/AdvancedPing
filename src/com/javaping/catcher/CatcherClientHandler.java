@@ -1,10 +1,10 @@
-package com.tcpping.catcher;
+package com.javaping.catcher;
 
 import java.io.IOException;
 import java.net.Socket;
 
-import com.tcpping.message.MessageInput;
-import com.tcpping.message.MessageOutput;
+import com.javaping.message.MessageInput;
+import com.javaping.message.MessageOutput;
 
 public class CatcherClientHandler implements Runnable {
 	private Socket connection;

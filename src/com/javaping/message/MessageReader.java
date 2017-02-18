@@ -1,9 +1,9 @@
-package com.tcpping.message;
+package com.javaping.message;
 
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 
-import com.tcpping.connection.TCPConnection;
+import com.javaping.connection.TCPConnection;
 
 public class MessageReader implements Runnable {
 	private final long ONE_SECOND = 1000000000;

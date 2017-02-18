@@ -1,14 +1,14 @@
-package com.tcpping.pitcher;
+package com.javaping.pitcher;
 
 import java.io.IOException;
 import java.util.TimerTask;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
-import com.tcpping.connection.TCPConnection;
-import com.tcpping.message.Message;
-import com.tcpping.message.MessageCounter;
-import com.tcpping.message.MessageOutput;
+import com.javaping.connection.TCPConnection;
+import com.javaping.message.Message;
+import com.javaping.message.MessageCounter;
+import com.javaping.message.MessageOutput;
 
 public class MessageGenerator extends TimerTask {
 	private final String CLOSE = "BYE";

@@ -1,6 +1,6 @@
-package com.tcpping.message;
+package com.javaping.message;
 
-import com.tcpping.time.TimingClass;
+import com.javaping.time.TimingClass;
 
 public class Message {
 	private long timeStamp;

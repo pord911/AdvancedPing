@@ -1,4 +1,4 @@
-package com.tcpping.time;
+package com.javaping.time;
 
 public class TimingClass {
 

@@ -1,4 +1,4 @@
-package com.tcpping.message;
+package com.javaping.message;
 
 import java.util.Date;
 import java.text.DateFormat;

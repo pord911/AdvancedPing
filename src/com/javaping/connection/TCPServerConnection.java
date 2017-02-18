@@ -1,4 +1,4 @@
-package com.tcpping.connection;
+package com.javaping.connection;
 
 import java.io.IOException;
 import java.net.InetAddress;

@@ -1,4 +1,4 @@
-package com.tcpping.pitcher;
+package com.javaping.pitcher;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -8,14 +8,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.cli.ParseException;
 
-import com.tcpping.connection.ConnType;
-import com.tcpping.connection.CreateTCPConnection;
-import com.tcpping.connection.TCPConnection;
-import com.tcpping.message.BufferQueueElement;
-import com.tcpping.message.Message;
-import com.tcpping.message.MessageHandler;
-import com.tcpping.message.MessageReader;
-import com.tcpping.tcpapp.TcpAppInterface;
+import com.javaping.connection.ConnType;
+import com.javaping.connection.CreateTCPConnection;
+import com.javaping.connection.TCPConnection;
+import com.javaping.message.BufferQueueElement;
+import com.javaping.message.Message;
+import com.javaping.message.MessageHandler;
+import com.javaping.message.MessageReader;
+import com.javaping.tcpapp.TcpAppInterface;
 
 public class Pitcher implements TcpAppInterface {
 	private String hostName;
