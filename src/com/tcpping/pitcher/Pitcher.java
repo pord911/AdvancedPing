@@ -13,10 +13,7 @@ import com.tcpping.connection.CreateTCPConnection;
 import com.tcpping.connection.TCPConnection;
 import com.tcpping.message.BufferQueueElement;
 import com.tcpping.message.Message;
-import com.tcpping.message.MessageContainer;
 import com.tcpping.message.MessageHandler;
-import com.tcpping.message.MessageInput;
-import com.tcpping.message.MessageOutput;
 import com.tcpping.message.MessageReader;
 import com.tcpping.tcpapp.TcpAppInterface;
 
@@ -50,18 +47,16 @@ public class Pitcher implements TcpAppInterface {
 		MessageGenerator msgGenerator = null;
 		TCPConnection connection = null;
 		MessageHandler msgHandler;
-		MessageContainer msgContainer;
-		BlockingQueue<Message> queue = new LinkedBlockingQueue<Message>();
+		BlockingQueue<BufferQueueElement<Message>> queue = new LinkedBlockingQueue<BufferQueueElement<Message>>();
 
 		try {
 
 			connection = CreateTCPConnection.createTCPConnection(ConnType.PITCHER, hostName, port);
-			msgContainer = new MessageContainer();
-			msgHandler = new MessageHandler(queue, msgContainer);
-			msgGenerator = new MessageGenerator(messageSize, messageNumber, connection, msgContainer);
+			msgHandler = new MessageHandler(queue);
+			msgGenerator = new MessageGenerator(messageSize, messageNumber, connection);
 			(new Thread(new MessageReader(connection, queue))).start();
 			timer.schedule(msgGenerator, 0, 1000);
-			msgHandler.processMessages();
+			msgHandler.processMessages(messageNumber);
 		} catch (UnknownHostException e) {
 			System.out.println(e.getMessage());
 		} catch (IOException e) {

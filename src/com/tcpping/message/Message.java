@@ -3,13 +3,16 @@ package com.tcpping.message;
 import com.tcpping.time.TimingClass;
 
 public class Message {
-	private final long timeStamp = TimingClass.getTime();
+	private long timeStamp;
 	private String message;
 	private int messageId;
 
-	public Message() {}
+	public Message() {
+		this.timeStamp = TimingClass.getTime();
+	}
 	public Message(String message) {
 		this.message = message;
+		timeStamp = TimingClass.getTime();
 	}
 
 	public Message(String message, int messageId) {

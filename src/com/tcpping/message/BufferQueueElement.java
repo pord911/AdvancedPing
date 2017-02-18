@@ -1,7 +1,6 @@
 package com.tcpping.message;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.LinkedList;
 
 /**
  * Object for storing message information.
@@ -10,45 +9,31 @@ import java.util.Map;
  * @author pord911
  *
  */
-public class BufferQueueElement {
-	private  Map<String, Long> lineList;
-	private int msgAcc;
-	private int msgNumber;
-	private boolean closeQueue = false;
+public class BufferQueueElement<T> {
+	private LinkedList<T> element;
+	private boolean streamClosed = false;
 
 	public BufferQueueElement() {
-		lineList = new LinkedHashMap<String, Long>();
+		element = new LinkedList<T>();
 	}
 
-	public Map<String, Long> getLineList() {
-		return lineList;
+	public boolean isStreamClosed() {
+		return streamClosed;
 	}
 
-	public void addListElement(String line, Long time) {
-		lineList.put(line, time);
+	public void setStreamClosed(boolean streamClosed) {
+		this.streamClosed = streamClosed;
 	}
 
-	public int getMsgAcc() {
-		return msgAcc;
+	public int getListLength() {
+		return element.size();
 	}
 
-	public void setMsgAcc(int msgAcc) {
-		this.msgAcc = msgAcc;
+	public LinkedList<T> getMessageList() {
+		return element;
 	}
 
-	public int getMsgNumber() {
-		return msgNumber;
-	}
-
-	public void setMsgNumber(int msgNumber) {
-		this.msgNumber = msgNumber;
-	}
-
-	public boolean isCloseQueue() {
-		return closeQueue;
-	}
-
-	public void setCloseQueue(boolean closeQueue) {
-		this.closeQueue = closeQueue;
+	public void setMessageElement(T e) {
+		element.add(e);
 	}
 }

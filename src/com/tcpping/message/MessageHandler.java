@@ -1,44 +1,68 @@
 package com.tcpping.message;
 
-import java.util.List;
+import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+
 import org.apache.commons.cli.ParseException;
 
-
+/* TODO: maybe put a generic for message here */
 public class MessageHandler {
-	private BlockingQueue<Message> queue;
-	private MessageContainer msgContainer;
+	private BlockingQueue<BufferQueueElement<Message>> queue;
 
 	/**
 	 * Create message handler for handling each received message.
 	 * @param messageIO    Stream IO reference.
 	 * @param msgContainer Container of sent messages.
 	 */
-	public MessageHandler(BlockingQueue<Message> queue, MessageContainer msgContainer) {
-		this.msgContainer = msgContainer;
+	public MessageHandler(BlockingQueue<BufferQueueElement<Message>> queue) {
 		this.queue = queue;
 	}
 
 	/**
 	 * Process received messages. Extract the timings, format and print the required message.
+	 * @param  Number of messages sent
 	 * @throws InterruptedException
 	 * @throws ParseException
 	 * @throws NumberFormatException
 	 */
-	public void processMessages() throws InterruptedException, ParseException, NumberFormatException  {
-		Message obj;
-		int messageAcc = 0;
-		//int msgPerSec = 0;
-		//long t1 = System.nanoTime();
+	public void processMessages(int numOfMessages) throws InterruptedException, ParseException, NumberFormatException  {
+		BufferQueueElement<Message> messageList = null;
+		int sum = 0;
+		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+		StringBuilder buildPrintMsg = new StringBuilder();
+		RTTClass rtt;
+		int padLength = Integer.toString(numOfMessages).length();
+		int messageNum = 0;
         /* Wait 5s for the reading thread to notify
          * that a certain number of msgs have been received. */
-		while ((obj = queue.poll(5000, TimeUnit.MILLISECONDS)) != null) {
-			messageAcc++;
-			System.out.println("Received message:" + obj.getMessage());
+		while ((messageList = queue.poll(5000, TimeUnit.MILLISECONDS)) != null) {
+			if ((rtt = calculateAvgAndMaxTime(messageList)) == null) {
+				System.out.println("Object returned from list is null, something is wrong");
+				continue;
+			}
+			messageNum = messageList.getListLength();
+			sum += messageNum;
+			
+			buildPrintMsg.setLength(0);
+			buildPrintMsg.append(dateFormat.format(new Date()))
+			             .append(" Messages: ")
+			             .append(String.format("%-" + padLength + "d%s", messageNum, "/s"))
+			             .append(" Average RTT: ")
+			             .append(rtt.getAverageRTT())
+			             .append("ms Max RTT: ")
+			             .append(rtt.getMaxRTT())
+			             .append("ms");
+			System.out.println(buildPrintMsg.toString());
+			if (messageList.isStreamClosed())
+				break;
 		}
-		System.out.println("Total messages received:" + messageAcc);
+		
+		System.out.println("Messages received: " + sum );
+		System.out.println("Messages lost: " + (MessageCounter.getSentMessages() - sum));
 	}
 
 	/**
@@ -75,49 +99,47 @@ public class MessageHandler {
 	/**
 	 * Calculate the average and max time for the number of received messages.
 	 * @param timeList     List of time stamps within 1 second.
-	 * @return             String format for printing the average time and max time.
+	 * @return             RTTClass object which holds average RTT time and max RTT time.
 	 * @throws NumberFormatException
+	 * @throws ParseException 
 	 */
-	private String calculateAvgAndMaxTime(List<Long> timeList) throws NumberFormatException {
+	private RTTClass calculateAvgAndMaxTime(BufferQueueElement<Message> messageList) throws NumberFormatException, ParseException {
 		long accTime = 0;
 		long maxTime = 0;
-		String avgTime;
+		long timeDiff = 0;
+		int listSize = messageList.getListLength();
 
-		for (Long time : timeList) {
-			if (maxTime < time)
-				maxTime = time;
-			accTime += time;
+		if (listSize == 0)
+			return null;
+
+		RTTClass rtt = new RTTClass();
+		for (Message msg : messageList.getMessageList()) {
+			timeDiff = msg.getTimeStamp() - getValueFromMessage(msg.getMessage(), "%", "-");
+			if (maxTime < timeDiff)
+				maxTime = timeDiff;
+			accTime += timeDiff;
 		}
 
-		if (timeList.size() == 0) {
-			System.out.println("RTT timing list is emty.");
-			return "";
-		}
-		avgTime = String.format("%.3f", (double) accTime/timeList.size());
-
-		return " AvgRTT=" + avgTime + "ms" + " MaxRTT=" + Long.toString(maxTime) + "ms";
+		rtt.setAverageRTT((double)accTime/(double)listSize);
+		rtt.setMaxRTT(maxTime);
+		return rtt;
 	}
+	
+	private class RTTClass {
+		private double averageRTT = 0;
+		private long maxRTT = 0;
 
-	/**
-	 * Calculate average B->A or A->B time for each message.
-	 * @param directionTimeList   List of time stamps.
-	 * @param printMsgString      Print format for A->B or B->A.
-	 * @return                    Calculated and formated average time.
-	 * @throws NumberFormatException
-	 */
-	private String calculateAvgDirectionTime(List<Long> directionTimeList, String printMsgString) throws NumberFormatException {
-		long accTime = 0;
-		String avgTime;
-
-		for (Long time : directionTimeList)
-			accTime += time;
-
-		if (directionTimeList.size() == 0) {
-			System.out.println("Direction timing list is emty.");
-			return "";
+		public String getAverageRTT() {
+			return String.format("%.3f", averageRTT);
 		}
-		avgTime = String.format("%.3f", (double) accTime/directionTimeList.size());
-
-		return printMsgString + avgTime + "ms";
+		public void setAverageRTT(double averageRTT) {
+			this.averageRTT = averageRTT;
+		}
+		public String getMaxRTT() {
+			return String.format("%.3f", (double)maxRTT/1000.0);
+		}
+		public void setMaxRTT(long maxRTT) {
+			this.maxRTT = maxRTT;
+		}
 	}
 }

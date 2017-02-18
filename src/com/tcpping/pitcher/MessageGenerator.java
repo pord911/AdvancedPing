@@ -7,10 +7,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 import com.tcpping.connection.TCPConnection;
 import com.tcpping.message.Message;
-import com.tcpping.message.MessageContainer;
+import com.tcpping.message.MessageCounter;
 import com.tcpping.message.MessageOutput;
-import com.tcpping.time.TimingClass;
-
 
 public class MessageGenerator extends TimerTask {
 	private final String CLOSE = "BYE";
@@ -19,9 +17,7 @@ public class MessageGenerator extends TimerTask {
 	private int msgPerSecond;
 	private MessageOutput msgHandler;
 	private int messageId = 0;
-	private MessageContainer msgContainer;
 	private int pingCounter = 0;
-	private int sentMessages = 0;
 	private StringBuilder buildMessage;
 
 	/**
@@ -32,11 +28,10 @@ public class MessageGenerator extends TimerTask {
 	 * @param msgContainer    Reference for message container.
 	 * @throws IOException
 	 */
-	public MessageGenerator(int size, int msgPerSecond, TCPConnection connection, MessageContainer msgContainer) throws IOException {
+	public MessageGenerator(int size, int msgPerSecond, TCPConnection connection) throws IOException {
 		this.size = size;
 		this.msgPerSecond = msgPerSecond;
 		this.msgHandler = new MessageOutput(connection.getClientSocket());
-		this.msgContainer = msgContainer;
 		this.buildMessage = new StringBuilder();
 	}
 
@@ -52,7 +47,7 @@ public class MessageGenerator extends TimerTask {
 				for (i = 0; i < msgPerSecond; i++) {
 					message = createMessage();
 					msgHandler.writeMessage(message.getMessage());
-					msgContainer.storeMessage(message);
+					MessageCounter.incrementSentMessages();
 				}
 			} else {
 				msgHandler.writeMessage(CLOSE);

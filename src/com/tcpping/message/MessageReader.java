@@ -4,12 +4,12 @@ import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 
 import com.tcpping.connection.TCPConnection;
-import com.tcpping.time.TimingClass;
 
 public class MessageReader implements Runnable {
+	private final long ONE_SECOND = 1000000000;
 	private final String CLOSE_STREAM = "OKBYE";
 	private MessageInput messageIO;
-	private BlockingQueue<Message> queue;
+	private BlockingQueue<BufferQueueElement<Message>> queue;
 
 	/**
 	 * Create an object for reading messages.
@@ -17,7 +17,7 @@ public class MessageReader implements Runnable {
 	 * @param queue        Blocking queue.
 	 * @throws IOException
 	 */
-	public MessageReader(TCPConnection connection, BlockingQueue<Message> queue) throws IOException {
+	public MessageReader(TCPConnection connection, BlockingQueue<BufferQueueElement<Message>> queue) throws IOException {
 		this.messageIO = new MessageInput(connection.getClientSocket());
 		this.queue = queue;
 	}
@@ -32,14 +32,26 @@ public class MessageReader implements Runnable {
 	public void run() {
 		String line = null;
 		Message message;
+		BufferQueueElement<Message> messageList = new BufferQueueElement<Message>();
+		long t1 = System.nanoTime(), t2 = 0;
 		try {
 			while ((line = messageIO.readMessage()) != null) {
-				/* Ok, we can close the stream. */
+				t2 = System.nanoTime();
+				/* Ok, we can close the stream. But process the last message list */
 				if (CLOSE_STREAM.equals(line)) {
+					messageList.setStreamClosed(true);
+					queue.put(messageList);
 					break;
+				} else if((t2 - t1) < ONE_SECOND) {
+					message = new Message(line);
+					messageList.setMessageElement(message);
+				} else {
+					queue.put(messageList);
+					messageList = new BufferQueueElement<Message>();
+					t1 = System.nanoTime();
+					message = new Message(line);
+					messageList.setMessageElement(message);
 				}
-				message = new Message(line);
-				queue.put(message);
 			}
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
