@@ -41,11 +41,11 @@ Options
 
 Catcher mode:
 
-   -c    Run the application in the Catcher mode.
+   -c       Run the application in the Catcher mode.
 
-   -bind Bind the Catcher to an IP address on which it listens for messages.
+   -bind    Bind the Catcher to an IP address on which it listens for messages.
 
-   -port Port on which the Catcher listens for messages.
+   -port    Port on which the Catcher listens for messages.
 
 
 Pitcher mode:
