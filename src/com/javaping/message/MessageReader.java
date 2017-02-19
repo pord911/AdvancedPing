@@ -33,11 +33,12 @@ public class MessageReader implements Runnable {
 		String line = null;
 		Message message;
 		BufferQueueElement<Message> messageList = new BufferQueueElement<Message>();
-		long t1 = System.nanoTime(), t2 = 0;
+		long t1 = System.nanoTime();
+	    long t2 = 0;
 		try {
 			while ((line = messageIO.readMessage()) != null) {
 				t2 = System.nanoTime();
-				/* Ok, we can close the stream. But process the last message list */
+				/* Ok, we can close the stream. But process the last message list. */
 				if (CLOSE_STREAM.equals(line)) {
 					messageList.setStreamClosed(true);
 					queue.put(messageList);
